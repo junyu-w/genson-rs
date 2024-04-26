@@ -49,9 +49,9 @@ pub trait SchemaStrategy {
 
 pub enum ScalarType {
     Null,
-    String(&'static str),
-    Number(i64),
-    Boolean(bool),
+    String,
+    Number,
+    Boolean,
 }
 
 /// base schema strategy trait for scalar types
@@ -71,9 +71,9 @@ pub trait TypelessSchemaStrategy: SchemaStrategy {
     fn match_object(&self, object: JsonValue) -> bool {
         match self.rs_type() {
             ScalarType::Null => object.is_null(),
-            ScalarType::String(_) => object.is_string(),
-            ScalarType::Number(_) => object.is_number(),
-            ScalarType::Boolean(_) => object.is_boolean(),
+            ScalarType::String => object.is_string(),
+            ScalarType::Number => object.is_number(),
+            ScalarType::Boolean => object.is_boolean(),
         }
     }
 }

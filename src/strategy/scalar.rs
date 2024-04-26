@@ -60,7 +60,7 @@ impl TypelessSchemaStrategy for BooleanStrategy {
     }
 
     fn rs_type(&self) -> ScalarType {
-        ScalarType::Boolean(false)
+        ScalarType::Boolean
     }
 }
 
@@ -119,7 +119,7 @@ impl TypelessSchemaStrategy for StringStrategy {
     }
 
     fn rs_type(&self) -> ScalarType {
-        ScalarType::String("")
+        ScalarType::String
     }
 }
 
@@ -143,7 +143,7 @@ impl TypelessSchemaStrategy for NumberStrategy {
     }
 
     fn rs_type(&self) -> ScalarType {
-        ScalarType::Number(0)
+        ScalarType::Number
     }
 
     fn to_schema(&self) -> JsonValue {
