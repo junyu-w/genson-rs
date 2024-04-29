@@ -1,16 +1,30 @@
 use json::JsonValue;
 
+use crate::strategy::{
+    array::ListStrategy, object::ObjectStrategy, 
+    scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy}
+};
+
+pub enum BasicSchemaStrategy {
+    Object(ObjectStrategy),
+    List(ListStrategy),
+    Null(NullStrategy),
+    Boolean(BooleanStrategy),
+    Number(NumberStrategy),
+    String(StringStrategy),
+}
+
 /// base schema strategy trait
 pub trait SchemaStrategy {
 
-    fn match_schema(&self, schema: JsonValue) -> bool;
-    fn match_object(&self, object: JsonValue) -> bool;
+    fn match_schema(&self, schema: &JsonValue) -> bool;
+    fn match_object(&self, object: &JsonValue) -> bool;
 
-    fn add_schema(&mut self, schema: JsonValue) {
+    fn add_schema(&mut self, schema: &JsonValue) {
         self.add_extra_keywords(schema)
     }
 
-    fn add_object(&mut self, object: JsonValue) {
+    fn add_object(&mut self, object: &JsonValue) {
         ()
     }
 
@@ -18,7 +32,7 @@ pub trait SchemaStrategy {
         self.get_extra_keywords().clone()
     }
 
-    fn add_extra_keywords(&mut self, schema: JsonValue) {
+    fn add_extra_keywords(&mut self, schema: &JsonValue) {
         schema.entries().for_each(|(key, value)| {
             let keywords = self.get_extra_keywords_mut();
             match keywords {
@@ -64,11 +78,11 @@ pub trait TypelessSchemaStrategy: SchemaStrategy {
         schema
     }
 
-    fn match_schema(&self, schema: JsonValue) -> bool {
+    fn match_schema(&self, schema: &JsonValue) -> bool {
         self.js_type().split("|").any(|t| schema["type"] == t)
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, object: &JsonValue) -> bool {
         match self.rs_type() {
             ScalarType::Null => object.is_null(),
             ScalarType::String => object.is_string(),

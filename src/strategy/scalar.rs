@@ -33,11 +33,11 @@ impl SchemaStrategy for NullStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: JsonValue) -> bool {
+    fn match_schema(&self, schema: &JsonValue) -> bool {
         TypelessSchemaStrategy::match_schema(self, schema)
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, object: &JsonValue) -> bool {
         TypelessSchemaStrategy::match_object(self, object)
     }
 }
@@ -73,11 +73,11 @@ impl SchemaStrategy for BooleanStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: JsonValue) -> bool {
+    fn match_schema(&self, schema: &JsonValue) -> bool {
         TypelessSchemaStrategy::match_schema(self, schema)
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, object: &JsonValue) -> bool {
         TypelessSchemaStrategy::match_object(self, object)
     }
 }
@@ -104,11 +104,11 @@ impl SchemaStrategy for StringStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: JsonValue) -> bool {
+    fn match_schema(&self, schema: &JsonValue) -> bool {
         TypelessSchemaStrategy::match_schema(self, schema)
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, object: &JsonValue) -> bool {
         TypelessSchemaStrategy::match_object(self, object)
     }
 }
@@ -155,14 +155,14 @@ impl TypelessSchemaStrategy for NumberStrategy {
 }
 
 impl SchemaStrategy for NumberStrategy {
-    fn add_schema(&mut self, schema: JsonValue) {
+    fn add_schema(&mut self, schema: &JsonValue) {
         SchemaStrategy::add_schema(self, schema);
         if schema["type"] == "number" {
             self.number_type = "number";
         }
     }
 
-    fn add_object(&mut self, object: JsonValue) {
+    fn add_object(&mut self, object: &JsonValue) {
         if object.is_number() {
             if let Some(_) = object.as_i64() {
                 self.number_type = "number";
@@ -178,11 +178,11 @@ impl SchemaStrategy for NumberStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: JsonValue) -> bool {
+    fn match_schema(&self, schema: &JsonValue) -> bool {
         TypelessSchemaStrategy::match_schema(self, schema)
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, object: &JsonValue) -> bool {
         TypelessSchemaStrategy::match_object(self, object)
     }
 }
@@ -208,11 +208,11 @@ impl SchemaStrategy for TypelessStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: JsonValue) -> bool {
+    fn match_schema(&self, schema: &JsonValue) -> bool {
         !schema.has_key("type")
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, _: &JsonValue) -> bool {
         false
     }
 }

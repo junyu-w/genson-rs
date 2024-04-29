@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::collections::hash_set::HashSet;
+use regex::Regex;
 
 use json::JsonValue;
 
@@ -36,27 +37,25 @@ impl SchemaStrategy for ObjectStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: JsonValue) -> bool {
+    fn match_schema(&self, schema: &JsonValue) -> bool {
         schema["type"] == "object"
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, object: &JsonValue) -> bool {
         object.is_object()
     }
 
-    fn add_object(&mut self, object: JsonValue) {
-        let properties = HashSet::new();
+    fn add_object(&mut self, object: &JsonValue) {
+        let mut properties = HashSet::new();
         object.entries().for_each(|(prop, subobj)| {
-            let mut pattern = None;
             if !self.properties.contains_key(prop) {
-                pattern = self.matching_pattern(prop)
-            }
-
-            if let Some(pattern) = pattern {
-                self.pattern_properties[pattern].add_object(subobj);
+                let pattern_matcher = |p: &str| Regex::new(p).unwrap().is_match(prop);
+                self.pattern_properties.iter_mut().find(|(p, _)| pattern_matcher(p)).map(|(_, node)| {
+                    node.add_object(subobj);
+                });
             } else {
                 properties.insert(prop.to_string());
-                self.properties[prop].add_object(subobj);
+                self.properties.get_mut(prop).unwrap().add_object(subobj);
             }
         });
 
@@ -64,13 +63,33 @@ impl SchemaStrategy for ObjectStrategy {
             self.required_properties.extend(properties);
         } else {
             // take the intersection
-            self.required_properties.retain(|p| self.required_properties.contains(p) && properties.contains(p));
+            self.required_properties.retain(|p| properties.contains(p));
         }
+    }
+
+    fn to_schema(&self) -> JsonValue {
+        let mut schema = SchemaStrategy::to_schema(self);
+        schema["type"] = "object".into();
+        if self.properties.len() > 0 {
+            schema["propperties"] = self.properties_to_schema(&self.properties);
+        }
+        if self.pattern_properties.len() > 0 {
+            schema["patternProperties"] = self.properties_to_schema(&self.pattern_properties);
+        }
+        if self.required_properties.len() > 0 && self.include_empty_required {
+            let required_props: Vec<String> = self.required_properties.iter().map(|p| p.to_string()).collect();
+            schema["required"] = required_props.into();
+        }
+        schema
     }
 }
 
 impl ObjectStrategy {
-    fn matching_pattern(&self, prop: &str) -> Option<&str> {
-        unimplemented!()
+    fn properties_to_schema(&self, properties: &HashMap<String, SchemaNode>) -> JsonValue {
+        let mut schema_properties = json::object! {};
+        properties.iter().for_each(|(prop, node)| {
+            schema_properties[prop] = node.to_schema();
+        });
+        schema_properties
     }
 }

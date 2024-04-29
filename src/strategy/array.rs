@@ -2,7 +2,7 @@ use core::slice::{IterMut, Iter};
 use json::JsonValue;
 
 use crate::strategy::base::SchemaStrategy;
-use crate::node::SchemaNode;
+use crate::node::{SchemaNode, DataType};
 
 pub trait ListSchemaStrategy: SchemaStrategy {
     fn get_items_mut(&mut self) -> IterMut<SchemaNode>;
@@ -18,7 +18,7 @@ pub trait ListSchemaStrategy: SchemaStrategy {
         schema
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, object: &JsonValue) -> bool {
         object.is_array()
     }
 }
@@ -49,20 +49,20 @@ impl SchemaStrategy for ListStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: JsonValue) -> bool {
+    fn match_schema(&self, schema: &JsonValue) -> bool {
         schema["type"] == "array" && schema["items"].is_object()
     }
 
-    fn match_object(&self, object: JsonValue) -> bool {
+    fn match_object(&self, object: &JsonValue) -> bool {
         ListSchemaStrategy::match_object(self, object)
     }
 
-    fn add_object(&mut self, object: JsonValue) {
-        let items = self.get_items_mut();
+    fn add_object(&mut self, object: &JsonValue) {
         match object {
             JsonValue::Array(objects) => {
-                objects.iter().for_each(|obj| {
-                    items.for_each(|node| {
+                let items = self.get_items_mut();
+                items.for_each(|node| {
+                    objects.iter().for_each(|obj| {
                         node.add_object(obj);
                     });
                 });
@@ -71,12 +71,12 @@ impl SchemaStrategy for ListStrategy {
         }
     }
 
-    fn add_schema(&mut self, schema: JsonValue) {
+    fn add_schema(&mut self, schema: &JsonValue) {
         SchemaStrategy::add_schema(self, schema);
         if schema.has_key("items") {
             let items = self.get_items_mut();
             items.for_each(|node| {
-                node.add_schema(&schema["items"]);
+                node.add_schema(&DataType::Schema(&schema["items"]));
             });
         }
     }
