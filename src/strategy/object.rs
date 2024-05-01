@@ -2,14 +2,14 @@ use std::collections::HashMap;
 use std::collections::hash_set::HashSet;
 use regex::Regex;
 
-use json::JsonValue;
+use serde_json::{Value, json};
 
 use crate::node::{SchemaNode, DataType};
 use crate::strategy::base::SchemaStrategy;
 
 pub struct ObjectStrategy {
     // TODO: this is redeclared everywhere, how to avoid this?
-    extra_keywords: JsonValue,
+    extra_keywords: Value,
     properties: HashMap<String, SchemaNode>,
     pattern_properties: HashMap<String, SchemaNode>,
     required_properties: HashSet<String>,
@@ -19,7 +19,7 @@ pub struct ObjectStrategy {
 impl ObjectStrategy {
     pub fn new() -> Self {
         ObjectStrategy {
-            extra_keywords: json::object! {},
+            extra_keywords: json!({}),
             properties: HashMap::new(),
             pattern_properties: HashMap::new(),
             required_properties: HashSet::new(),
@@ -29,35 +29,38 @@ impl ObjectStrategy {
 }
 
 impl SchemaStrategy for ObjectStrategy {
-    fn get_extra_keywords_mut(&mut self) -> &mut JsonValue {
+    fn get_extra_keywords_mut(&mut self) -> &mut Value {
         &mut self.extra_keywords
     }
 
-    fn get_extra_keywords(&self) -> &JsonValue {
+    fn get_extra_keywords(&self) -> &Value {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &JsonValue) -> bool {
+    fn match_schema(&self, schema: &Value) -> bool {
         schema["type"] == "object"
     }
 
-    fn match_object(&self, object: &JsonValue) -> bool {
+    fn match_object(&self, object: &Value) -> bool {
         object.is_object()
     }
 
-    fn add_object(&mut self, object: &JsonValue) {
+    fn add_object(&mut self, object: &Value) {
         let mut properties = HashSet::new();
-        object.entries().for_each(|(prop, subobj)| {
-            if !self.properties.contains_key(prop) {
-                let pattern_matcher = |p: &str| Regex::new(p).unwrap().is_match(prop);
-                self.pattern_properties.iter_mut().find(|(p, _)| pattern_matcher(p)).map(|(_, node)| {
-                    node.add_object(DataType::Object(subobj));
-                });
-            } else {
-                properties.insert(prop.to_string());
-                self.properties.get_mut(prop).unwrap().add_object(DataType::Object(subobj));
-            }
-        });
+        if let Value::Object(object) = object {
+            object.iter().for_each(|(prop, subobj)| {
+                if !self.properties.contains_key(prop) {
+                    let pattern_matcher = |p: &str| Regex::new(p).unwrap().is_match(prop);
+                    self.pattern_properties.iter_mut().find(|(p, _)| pattern_matcher(p)).map(|(_, node)| {
+                        node.add_object(DataType::Object(subobj));
+                    });
+                } else {
+                    properties.insert(prop.to_string());
+                    self.properties.get_mut(prop).unwrap().add_object(DataType::Object(subobj));
+                }
+            });
+        }
+       
 
         if self.required_properties.len() == 0 {
             self.required_properties.extend(properties);
@@ -67,7 +70,7 @@ impl SchemaStrategy for ObjectStrategy {
         }
     }
 
-    fn to_schema(&self) -> JsonValue {
+    fn to_schema(&self) -> Value {
         let mut schema = SchemaStrategy::to_schema(self);
         schema["type"] = "object".into();
         if self.properties.len() > 0 {
@@ -85,8 +88,8 @@ impl SchemaStrategy for ObjectStrategy {
 }
 
 impl ObjectStrategy {
-    fn properties_to_schema(&self, properties: &HashMap<String, SchemaNode>) -> JsonValue {
-        let mut schema_properties = json::object! {};
+    fn properties_to_schema(&self, properties: &HashMap<String, SchemaNode>) -> Value {
+        let mut schema_properties = json!({});
         properties.iter().for_each(|(prop, node)| {
             schema_properties[prop] = node.to_schema();
         });

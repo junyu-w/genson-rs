@@ -1,4 +1,4 @@
-use json::{object, JsonValue};
+use serde_json::{Value, json};
 use crate::strategy::base::{SchemaStrategy, BasicSchemaStrategy};
 
 /// Basic schema generator class. SchemaNode objects can be loaded
@@ -8,11 +8,11 @@ pub struct SchemaNode {
 }
 
 /// DataType wraps around different types of schema data that can be added
-/// to a SchemaNode. It wraps references to JsonValue objects and SchemaNode
+/// to a SchemaNode. It wraps references to Value objects and SchemaNode
 /// objects so when it gets dropped the underlying data is not dropped.
 pub enum DataType<'a> {
-    Schema(&'a JsonValue),
-    Object(&'a JsonValue),
+    Schema(&'a Value),
+    Object(&'a Value),
     SchemaNode(&'a SchemaNode),
 }
 
@@ -31,14 +31,29 @@ impl SchemaNode {
         };
         
         for subschema in SchemaNode::get_subschemas(&schema) {
-            let active_strategy = self.get_strategy_for_schema(subschema);
-            SchemaNode::add_schema_or_object(active_strategy, DataType::Schema(subschema));
+            let active_strategy = self.get_strategy_for_schema(&subschema);
+            SchemaNode::add_schema_or_object(active_strategy, DataType::Schema(&subschema));
         }
         self
     }
 
-    fn get_subschemas(schema: &JsonValue) -> Vec<&JsonValue> {
-        unimplemented!()
+    fn get_subschemas(schema: &Value) -> Vec<Value> {
+        if let Value::Object(schema) = schema {
+            if let Some(Value::Array(anyof)) = schema.get("anyOf") {
+                return anyof.iter().map(|t| SchemaNode::get_subschemas(t)).flatten().collect();
+            }
+            else if let Some(Value::Array(types)) = schema.get("type") {
+                return types.iter().map(|t| {
+                    let mut new_schema = schema.clone();
+                    new_schema["type"] = t.clone();
+                    return Value::Object(new_schema);
+                }).collect();
+            }
+            else {
+                return vec![Value::Object(schema.clone())];
+            }
+        }
+        return vec![schema.clone()];
     }
 
     /// Modify the schema to accomodate the object.
@@ -53,16 +68,16 @@ impl SchemaNode {
         self
     }
 
-    pub fn to_schema(&self) -> JsonValue {
+    pub fn to_schema(&self) -> Value {
         // TODO: do I need this here?
         unimplemented!()
     }
 
-    fn get_strategy_for_object(&mut self, object: &JsonValue) -> &mut BasicSchemaStrategy {
+    fn get_strategy_for_object(&mut self, object: &Value) -> &mut BasicSchemaStrategy {
         return self.get_strategy_for_kind(DataType::Object(object));
     }
 
-    fn get_strategy_for_schema(&mut self, schema: &JsonValue) -> &mut BasicSchemaStrategy {
+    fn get_strategy_for_schema(&mut self, schema: &Value) -> &mut BasicSchemaStrategy {
         return self.get_strategy_for_kind(DataType::Schema(schema));
     }
 

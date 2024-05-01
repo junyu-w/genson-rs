@@ -1,5 +1,5 @@
 use core::slice::{IterMut, Iter};
-use json::JsonValue;
+use serde_json::{Value, json};
 
 use crate::strategy::base::SchemaStrategy;
 use crate::node::{SchemaNode, DataType};
@@ -7,9 +7,9 @@ use crate::node::{SchemaNode, DataType};
 pub trait ListSchemaStrategy: SchemaStrategy {
     fn get_items_mut(&mut self) -> IterMut<SchemaNode>;
     fn get_items(&self) -> Iter<SchemaNode>;
-    fn items_to_schema(&self) -> JsonValue;
+    fn items_to_schema(&self) -> Value;
 
-    fn to_schema(&self) -> JsonValue {
+    fn to_schema(&self) -> Value {
         let mut schema = SchemaStrategy::to_schema(self);
         schema["type"] = "array".into();
         if self.get_items().len() > 0 {
@@ -18,7 +18,7 @@ pub trait ListSchemaStrategy: SchemaStrategy {
         schema
     }
 
-    fn match_object(&self, object: &JsonValue) -> bool {
+    fn match_object(&self, object: &Value) -> bool {
         object.is_array()
     }
 }
@@ -26,14 +26,14 @@ pub trait ListSchemaStrategy: SchemaStrategy {
 /// strategy for list-style array schemas. This is the default
 /// strategy for arrays.
 pub struct ListStrategy {
-    extra_keywords: JsonValue,
+    extra_keywords: Value,
     items: Vec<SchemaNode>,
 }
 
 impl ListStrategy {
     pub fn new() -> Self {
         ListStrategy {
-            extra_keywords: json::object! {},
+            extra_keywords: json!({}),
             items: vec![SchemaNode::new()]
         }
     }
@@ -41,25 +41,25 @@ impl ListStrategy {
 
 impl SchemaStrategy for ListStrategy {
     // TODO: this placeholder is repeated everywhere, how to avoid this?
-    fn get_extra_keywords_mut(&mut self) -> &mut JsonValue {
+    fn get_extra_keywords_mut(&mut self) -> &mut Value {
         &mut self.extra_keywords
     }
 
-    fn get_extra_keywords(&self) -> &JsonValue {
+    fn get_extra_keywords(&self) -> &Value {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &JsonValue) -> bool {
+    fn match_schema(&self, schema: &Value) -> bool {
         schema["type"] == "array" && schema["items"].is_object()
     }
 
-    fn match_object(&self, object: &JsonValue) -> bool {
+    fn match_object(&self, object: &Value) -> bool {
         ListSchemaStrategy::match_object(self, object)
     }
 
-    fn add_object(&mut self, object: &JsonValue) {
+    fn add_object(&mut self, object: &Value) {
         match object {
-            JsonValue::Array(objects) => {
+            Value::Array(objects) => {
                 let items = self.get_items_mut();
                 items.for_each(|node| {
                     objects.iter().for_each(|obj| {
@@ -71,14 +71,15 @@ impl SchemaStrategy for ListStrategy {
         }
     }
 
-    fn add_schema(&mut self, schema: &JsonValue) {
-        if schema.has_key("items") {
-            let items = self.get_items_mut();
-            items.for_each(|node| {
-                node.add_schema(DataType::Schema(&schema["items"]));
-            });
+    fn add_schema(&mut self, schema: &Value) {
+        if let Value::Object(schema) = schema {
+            if schema.contains_key("items") {
+                let items = self.get_items_mut();
+                items.for_each(|node| {
+                    node.add_schema(DataType::Schema(&schema["items"]));
+                });
+            }
         }
-        SchemaStrategy::add_schema(self, schema);
     }
 }
 
@@ -91,7 +92,7 @@ impl ListSchemaStrategy for ListStrategy {
         self.items.iter()
     }
 
-    fn items_to_schema(&self) -> JsonValue {
+    fn items_to_schema(&self) -> Value {
         unimplemented!()
     }
 }

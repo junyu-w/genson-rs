@@ -1,4 +1,4 @@
-use json::JsonValue;
+use serde_json::Value;
 
 use crate::strategy::{
     array::ListStrategy, object::ObjectStrategy, 
@@ -17,47 +17,49 @@ pub enum BasicSchemaStrategy {
 /// base schema strategy trait
 pub trait SchemaStrategy {
 
-    fn match_schema(&self, schema: &JsonValue) -> bool;
-    fn match_object(&self, object: &JsonValue) -> bool;
+    fn match_schema(&self, schema: &Value) -> bool;
+    fn match_object(&self, object: &Value) -> bool;
 
-    fn add_schema(&mut self, schema: &JsonValue) {
+    fn add_schema(&mut self, schema: &Value) {
         self.add_extra_keywords(schema)
     }
 
-    fn add_object(&mut self, _object: &JsonValue) {
+    fn add_object(&mut self, _object: &Value) {
         ()
     }
 
-    fn to_schema(&self) -> JsonValue {
+    fn to_schema(&self) -> Value {
         self.get_extra_keywords().clone()
     }
 
-    fn add_extra_keywords(&mut self, schema: &JsonValue) {
-        schema.entries().for_each(|(key, value)| {
-            let keywords = self.get_extra_keywords_mut();
-            match keywords {
-                JsonValue::Object(keywords) => {
-                    if key == "type" {
-                        return;
-        
-                    } else if let None = keywords.get(key) {
-                        keywords.insert(key, value.clone());
-        
-                    } else if let Some(current_value) = keywords.get(key) {
-                        if current_value != value {
-                            eprintln!("Warning: Schema incompatible. Keyword {key} has conflicting \
-                                values {current_value} and {value}. Using {current_value}.")
+    fn add_extra_keywords(&mut self, schema: &Value) {
+        if let Value::Object(schema) = schema {
+            schema.iter().for_each(|(key, value)| {
+                let keywords = self.get_extra_keywords_mut();
+                match keywords {
+                    Value::Object(keywords) => {
+                        if key == "type" {
+                            return;
+            
+                        } else if let None = keywords.get(key) {
+                            keywords.insert(key.to_string(), value.clone());
+            
+                        } else if let Some(current_value) = keywords.get(key) {
+                            if current_value != value {
+                                eprintln!("Warning: Schema incompatible. Keyword {key} has conflicting \
+                                    values {current_value} and {value}. Using {current_value}.")
+                            }
                         }
-                    }
-                },
-                _ => ()
-            }
-        });
+                    },
+                    _ => ()
+                }
+            });
+        }
     }
 
-    fn get_extra_keywords_mut(&mut self) -> &mut JsonValue;
+    fn get_extra_keywords_mut(&mut self) -> &mut Value;
 
-    fn get_extra_keywords(&self) -> &JsonValue;
+    fn get_extra_keywords(&self) -> &Value;
 }
 
 
@@ -72,17 +74,17 @@ pub enum ScalarType {
 pub trait TypelessSchemaStrategy: SchemaStrategy {
     fn js_type(&self) -> &'static str;
     fn rs_type(&self) -> ScalarType;
-    fn to_schema(&self) -> JsonValue {
+    fn to_schema(&self) -> Value {
         let mut schema = SchemaStrategy::to_schema(self);
-        schema["type"] = JsonValue::String(self.js_type().to_string());
+        schema["type"] = Value::String(self.js_type().to_string());
         schema
     }
 
-    fn match_schema(&self, schema: &JsonValue) -> bool {
+    fn match_schema(&self, schema: &Value) -> bool {
         self.js_type().split("|").any(|t| schema["type"] == t)
     }
 
-    fn match_object(&self, object: &JsonValue) -> bool {
+    fn match_object(&self, object: &Value) -> bool {
         match self.rs_type() {
             ScalarType::Null => object.is_null(),
             ScalarType::String => object.is_string(),

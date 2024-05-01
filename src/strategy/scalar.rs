@@ -1,15 +1,15 @@
-use json::JsonValue;
+use serde_json::{Value, json};
 
 use crate::strategy::base::{SchemaStrategy, TypelessSchemaStrategy, ScalarType};
 
 pub struct NullStrategy {
-    extra_keywords: JsonValue,
+    extra_keywords: Value,
 }
 
 impl NullStrategy {
     pub fn new() -> Self {
         NullStrategy {
-            extra_keywords: json::object! {}
+            extra_keywords: json!({})
         }
     }
 }
@@ -25,31 +25,31 @@ impl TypelessSchemaStrategy for NullStrategy {
 }
 
 impl SchemaStrategy for NullStrategy {
-    fn get_extra_keywords_mut(&mut self) -> &mut JsonValue {
+    fn get_extra_keywords_mut(&mut self) -> &mut Value {
         &mut self.extra_keywords
     }
 
-    fn get_extra_keywords(&self) -> &JsonValue {
+    fn get_extra_keywords(&self) -> &Value {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &JsonValue) -> bool {
+    fn match_schema(&self, schema: &Value) -> bool {
         TypelessSchemaStrategy::match_schema(self, schema)
     }
 
-    fn match_object(&self, object: &JsonValue) -> bool {
+    fn match_object(&self, object: &Value) -> bool {
         TypelessSchemaStrategy::match_object(self, object)
     }
 }
 
 pub struct BooleanStrategy {
-    extra_keywords: JsonValue,
+    extra_keywords: Value,
 }
 
 impl BooleanStrategy {
     pub fn new() -> Self {
         BooleanStrategy {
-            extra_keywords: json::object! {}
+            extra_keywords: json!({})
         }
     }
 }
@@ -65,50 +65,50 @@ impl TypelessSchemaStrategy for BooleanStrategy {
 }
 
 impl SchemaStrategy for BooleanStrategy {
-    fn get_extra_keywords_mut(&mut self) -> &mut JsonValue {
+    fn get_extra_keywords_mut(&mut self) -> &mut Value {
         &mut self.extra_keywords
     }
 
-    fn get_extra_keywords(&self) -> &JsonValue {
+    fn get_extra_keywords(&self) -> &Value {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &JsonValue) -> bool {
+    fn match_schema(&self, schema: &Value) -> bool {
         TypelessSchemaStrategy::match_schema(self, schema)
     }
 
-    fn match_object(&self, object: &JsonValue) -> bool {
+    fn match_object(&self, object: &Value) -> bool {
         TypelessSchemaStrategy::match_object(self, object)
     }
 }
 
 
 pub struct StringStrategy {
-    extra_keywords: JsonValue,
+    extra_keywords: Value,
 }
 
 impl StringStrategy {
     pub fn new() -> Self {
         StringStrategy {
-            extra_keywords: json::object! {}
+            extra_keywords: json!({})
         }
     }
 }
 
 impl SchemaStrategy for StringStrategy {
-    fn get_extra_keywords_mut(&mut self) -> &mut JsonValue {
+    fn get_extra_keywords_mut(&mut self) -> &mut Value {
         &mut self.extra_keywords
     }
 
-    fn get_extra_keywords(&self) -> &JsonValue {
+    fn get_extra_keywords(&self) -> &Value {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &JsonValue) -> bool {
+    fn match_schema(&self, schema: &Value) -> bool {
         TypelessSchemaStrategy::match_schema(self, schema)
     }
 
-    fn match_object(&self, object: &JsonValue) -> bool {
+    fn match_object(&self, object: &Value) -> bool {
         TypelessSchemaStrategy::match_object(self, object)
     }
 }
@@ -125,14 +125,14 @@ impl TypelessSchemaStrategy for StringStrategy {
 
 pub struct NumberStrategy {
     number_type: &'static str,
-    extra_keywords: JsonValue,
+    extra_keywords: Value,
 }
 
 impl NumberStrategy {
     pub fn new() -> Self {
         NumberStrategy {
             number_type: "integer",
-            extra_keywords: json::object! {},
+            extra_keywords: json!({}),
         }
     }
 }
@@ -146,23 +146,23 @@ impl TypelessSchemaStrategy for NumberStrategy {
         ScalarType::Number
     }
 
-    fn to_schema(&self) -> JsonValue {
+    fn to_schema(&self) -> Value {
         let mut schema = SchemaStrategy::to_schema(self);
-        schema["type"] = JsonValue::String(self.number_type.to_string());
+        schema["type"] = Value::String(self.number_type.to_string());
         schema
     
     }
 }
 
 impl SchemaStrategy for NumberStrategy {
-    fn add_schema(&mut self, schema: &JsonValue) {
+    fn add_schema(&mut self, schema: &Value) {
         if schema["type"] == "number" {
             self.number_type = "number";
         }
         SchemaStrategy::add_schema(self, schema);
     }
 
-    fn add_object(&mut self, object: &JsonValue) {
+    fn add_object(&mut self, object: &Value) {
         if object.is_number() {
             if let Some(_) = object.as_i64() {
                 self.number_type = "number";
@@ -170,49 +170,52 @@ impl SchemaStrategy for NumberStrategy {
         }
     }
 
-    fn get_extra_keywords_mut(&mut self) -> &mut JsonValue {
+    fn get_extra_keywords_mut(&mut self) -> &mut Value {
         &mut self.extra_keywords
     }
 
-    fn get_extra_keywords(&self) -> &JsonValue {
+    fn get_extra_keywords(&self) -> &Value {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &JsonValue) -> bool {
+    fn match_schema(&self, schema: &Value) -> bool {
         TypelessSchemaStrategy::match_schema(self, schema)
     }
 
-    fn match_object(&self, object: &JsonValue) -> bool {
+    fn match_object(&self, object: &Value) -> bool {
         TypelessSchemaStrategy::match_object(self, object)
     }
 }
 
 pub struct TypelessStrategy {
-    extra_keywords: JsonValue,
+    extra_keywords: Value,
 }
 
 impl TypelessStrategy {
     pub fn new() -> Self {
         TypelessStrategy {
-            extra_keywords: json::object! {}
+            extra_keywords: json!({})
         }
     }
 }
 
 impl SchemaStrategy for TypelessStrategy {
-    fn get_extra_keywords_mut(&mut self) -> &mut JsonValue {
+    fn get_extra_keywords_mut(&mut self) -> &mut Value {
         &mut self.extra_keywords
     }
 
-    fn get_extra_keywords(&self) -> &JsonValue {
+    fn get_extra_keywords(&self) -> &Value {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &JsonValue) -> bool {
-        !schema.has_key("type")
+    fn match_schema(&self, schema: &Value) -> bool {
+        if let Value::Object(obj) = schema {
+            return !obj.contains_key("type");
+        }
+        return true;
     }
 
-    fn match_object(&self, _: &JsonValue) -> bool {
+    fn match_object(&self, _: &Value) -> bool {
         false
     }
 }
