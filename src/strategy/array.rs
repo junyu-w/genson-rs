@@ -63,7 +63,7 @@ impl SchemaStrategy for ListStrategy {
                 let items = self.get_items_mut();
                 items.for_each(|node| {
                     objects.iter().for_each(|obj| {
-                        node.add_object(obj);
+                        node.add_object(DataType::Object(obj));
                     });
                 });
             },
@@ -72,13 +72,13 @@ impl SchemaStrategy for ListStrategy {
     }
 
     fn add_schema(&mut self, schema: &JsonValue) {
-        SchemaStrategy::add_schema(self, schema);
         if schema.has_key("items") {
             let items = self.get_items_mut();
             items.for_each(|node| {
-                node.add_schema(&DataType::Schema(&schema["items"]));
+                node.add_schema(DataType::Schema(&schema["items"]));
             });
         }
+        SchemaStrategy::add_schema(self, schema);
     }
 }
 

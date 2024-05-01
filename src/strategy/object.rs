@@ -4,7 +4,7 @@ use regex::Regex;
 
 use json::JsonValue;
 
-use crate::node::SchemaNode;
+use crate::node::{SchemaNode, DataType};
 use crate::strategy::base::SchemaStrategy;
 
 pub struct ObjectStrategy {
@@ -51,11 +51,11 @@ impl SchemaStrategy for ObjectStrategy {
             if !self.properties.contains_key(prop) {
                 let pattern_matcher = |p: &str| Regex::new(p).unwrap().is_match(prop);
                 self.pattern_properties.iter_mut().find(|(p, _)| pattern_matcher(p)).map(|(_, node)| {
-                    node.add_object(subobj);
+                    node.add_object(DataType::Object(subobj));
                 });
             } else {
                 properties.insert(prop.to_string());
-                self.properties.get_mut(prop).unwrap().add_object(subobj);
+                self.properties.get_mut(prop).unwrap().add_object(DataType::Object(subobj));
             }
         });
 

@@ -156,10 +156,10 @@ impl TypelessSchemaStrategy for NumberStrategy {
 
 impl SchemaStrategy for NumberStrategy {
     fn add_schema(&mut self, schema: &JsonValue) {
-        SchemaStrategy::add_schema(self, schema);
         if schema["type"] == "number" {
             self.number_type = "number";
         }
+        SchemaStrategy::add_schema(self, schema);
     }
 
     fn add_object(&mut self, object: &JsonValue) {

@@ -24,7 +24,7 @@ pub trait SchemaStrategy {
         self.add_extra_keywords(schema)
     }
 
-    fn add_object(&mut self, object: &JsonValue) {
+    fn add_object(&mut self, _object: &JsonValue) {
         ()
     }
 
