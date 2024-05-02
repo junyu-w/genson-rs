@@ -18,7 +18,7 @@ pub trait ListSchemaStrategy: SchemaStrategy {
         schema
     }
 
-    fn match_object(&self, object: &Value) -> bool {
+    fn match_object(object: &Value) -> bool {
         object.is_array()
     }
 }
@@ -49,12 +49,12 @@ impl SchemaStrategy for ListStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &Value) -> bool {
+    fn match_schema(schema: &Value) -> bool {
         schema["type"] == "array" && schema["items"].is_object()
     }
 
-    fn match_object(&self, object: &Value) -> bool {
-        ListSchemaStrategy::match_object(self, object)
+    fn match_object(object: &Value) -> bool {
+        <Self as ListSchemaStrategy>::match_object(object)
     }
 
     fn add_object(&mut self, object: &Value) {

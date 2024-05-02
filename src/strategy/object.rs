@@ -37,11 +37,11 @@ impl SchemaStrategy for ObjectStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &Value) -> bool {
+    fn match_schema(schema: &Value) -> bool {
         schema["type"] == "object"
     }
 
-    fn match_object(&self, object: &Value) -> bool {
+    fn match_object(object: &Value) -> bool {
         object.is_object()
     }
 

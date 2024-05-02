@@ -15,11 +15,11 @@ impl NullStrategy {
 }
 
 impl TypelessSchemaStrategy for NullStrategy {
-    fn js_type(&self) -> &'static str {
+    fn js_type() -> &'static str {
         "null"
     }
 
-    fn rs_type(&self) -> ScalarType {
+    fn rs_type() -> ScalarType {
         ScalarType::Null
     }
 }
@@ -33,12 +33,12 @@ impl SchemaStrategy for NullStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &Value) -> bool {
-        TypelessSchemaStrategy::match_schema(self, schema)
+    fn match_schema(schema: &Value) -> bool {
+        <Self as TypelessSchemaStrategy>::match_schema(schema)
     }
 
-    fn match_object(&self, object: &Value) -> bool {
-        TypelessSchemaStrategy::match_object(self, object)
+    fn match_object(object: &Value) -> bool {
+        <Self as TypelessSchemaStrategy>::match_object(object)
     }
 }
 
@@ -55,11 +55,11 @@ impl BooleanStrategy {
 }
 
 impl TypelessSchemaStrategy for BooleanStrategy {
-    fn js_type(&self) -> &'static str {
+    fn js_type() -> &'static str {
         "boolean"
     }
 
-    fn rs_type(&self) -> ScalarType {
+    fn rs_type() -> ScalarType {
         ScalarType::Boolean
     }
 }
@@ -73,12 +73,12 @@ impl SchemaStrategy for BooleanStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &Value) -> bool {
-        TypelessSchemaStrategy::match_schema(self, schema)
+    fn match_schema(schema: &Value) -> bool {
+        <Self as TypelessSchemaStrategy>::match_schema(schema)
     }
 
-    fn match_object(&self, object: &Value) -> bool {
-        TypelessSchemaStrategy::match_object(self, object)
+    fn match_object(object: &Value) -> bool {
+        <Self as TypelessSchemaStrategy>::match_object(object)
     }
 }
 
@@ -104,21 +104,21 @@ impl SchemaStrategy for StringStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &Value) -> bool {
-        TypelessSchemaStrategy::match_schema(self, schema)
+    fn match_schema(schema: &Value) -> bool {
+        <Self as TypelessSchemaStrategy>::match_schema(schema)
     }
 
-    fn match_object(&self, object: &Value) -> bool {
-        TypelessSchemaStrategy::match_object(self, object)
+    fn match_object(object: &Value) -> bool {
+        <Self as TypelessSchemaStrategy>::match_object(object)
     }
 }
 
 impl TypelessSchemaStrategy for StringStrategy {
-    fn js_type(&self) -> &'static str {
+    fn js_type() -> &'static str {
         "string"
     }
 
-    fn rs_type(&self) -> ScalarType {
+    fn rs_type() -> ScalarType {
         ScalarType::String
     }
 }
@@ -138,11 +138,11 @@ impl NumberStrategy {
 }
 
 impl TypelessSchemaStrategy for NumberStrategy {
-    fn js_type(&self) -> &'static str {
+    fn js_type() -> &'static str {
         "integer|number"
     }
 
-    fn rs_type(&self) -> ScalarType {
+    fn rs_type() -> ScalarType {
         ScalarType::Number
     }
 
@@ -178,12 +178,12 @@ impl SchemaStrategy for NumberStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &Value) -> bool {
-        TypelessSchemaStrategy::match_schema(self, schema)
+    fn match_schema(schema: &Value) -> bool {
+        <Self as TypelessSchemaStrategy>::match_schema(schema)
     }
 
-    fn match_object(&self, object: &Value) -> bool {
-        TypelessSchemaStrategy::match_object(self, object)
+    fn match_object(object: &Value) -> bool {
+        <Self as TypelessSchemaStrategy>::match_object(object)
     }
 }
 
@@ -208,14 +208,14 @@ impl SchemaStrategy for TypelessStrategy {
         &self.extra_keywords
     }
 
-    fn match_schema(&self, schema: &Value) -> bool {
+    fn match_schema(schema: &Value) -> bool {
         if let Value::Object(obj) = schema {
             return !obj.contains_key("type");
         }
         return true;
     }
 
-    fn match_object(&self, _: &Value) -> bool {
+    fn match_object(_: &Value) -> bool {
         false
     }
 }

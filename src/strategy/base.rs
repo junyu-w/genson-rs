@@ -17,8 +17,8 @@ pub enum BasicSchemaStrategy {
 /// base schema strategy trait
 pub trait SchemaStrategy {
 
-    fn match_schema(&self, schema: &Value) -> bool;
-    fn match_object(&self, object: &Value) -> bool;
+    fn match_schema(schema: &Value) -> bool;
+    fn match_object(object: &Value) -> bool;
 
     fn add_schema(&mut self, schema: &Value) {
         self.add_extra_keywords(schema)
@@ -72,20 +72,20 @@ pub enum ScalarType {
 
 /// base schema strategy trait for scalar types
 pub trait TypelessSchemaStrategy: SchemaStrategy {
-    fn js_type(&self) -> &'static str;
-    fn rs_type(&self) -> ScalarType;
+    fn js_type() -> &'static str;
+    fn rs_type() -> ScalarType;
     fn to_schema(&self) -> Value {
         let mut schema = SchemaStrategy::to_schema(self);
-        schema["type"] = Value::String(self.js_type().to_string());
+        schema["type"] = Value::String(Self::js_type().to_string());
         schema
     }
 
-    fn match_schema(&self, schema: &Value) -> bool {
-        self.js_type().split("|").any(|t| schema["type"] == t)
+    fn match_schema(schema: &Value) -> bool {
+        Self::js_type().split("|").any(|t| schema["type"] == t)
     }
 
-    fn match_object(&self, object: &Value) -> bool {
-        match self.rs_type() {
+    fn match_object(object: &Value) -> bool {
+        match Self::rs_type() {
             ScalarType::Null => object.is_null(),
             ScalarType::String => object.is_string(),
             ScalarType::Number => object.is_number(),

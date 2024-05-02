@@ -1,5 +1,8 @@
 use serde_json::{Value, json};
 use crate::strategy::base::{SchemaStrategy, BasicSchemaStrategy};
+use crate::strategy::object::ObjectStrategy;
+use crate::strategy::array::ListStrategy;
+use crate::strategy::scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy};
 
 /// Basic schema generator class. SchemaNode objects can be loaded
 /// up with existing schemas and objects before being serialized.
@@ -82,6 +85,7 @@ impl SchemaNode {
     }
 
     fn get_strategy_for_kind(&mut self, schema_or_object_ref: DataType) -> &mut BasicSchemaStrategy {
+        // check if it matches any existing types
         let active_strategy = self.active_strategies.iter_mut().find(|strategy| { 
             SchemaNode::match_schema_or_object(strategy, &schema_or_object_ref)
         });
@@ -89,27 +93,28 @@ impl SchemaNode {
             return s;
         }
 
+        // check if it matches with any other types
         unimplemented!()
     }
 
     fn match_schema_or_object(strategy: &BasicSchemaStrategy, schema_or_object: &DataType) -> bool {
         match schema_or_object {
             DataType::Object(obj) => match strategy {
-                BasicSchemaStrategy::Object(s) => s.match_object(obj),
-                BasicSchemaStrategy::Boolean(s) => s.match_object(obj),
-                BasicSchemaStrategy::Null(s) => s.match_object(obj),
-                BasicSchemaStrategy::Number(s) => s.match_object(obj),
-                BasicSchemaStrategy::String(s) => s.match_object(obj),
-                BasicSchemaStrategy::List(s) => s.match_object(obj),
+                BasicSchemaStrategy::Object(_) => ObjectStrategy::match_object(obj),
+                BasicSchemaStrategy::Boolean(_) => BooleanStrategy::match_object(obj),
+                BasicSchemaStrategy::Null(_) => NullStrategy::match_object(obj),
+                BasicSchemaStrategy::Number(_) => NumberStrategy::match_object(obj),
+                BasicSchemaStrategy::String(_) => StringStrategy::match_object(obj),
+                BasicSchemaStrategy::List(_) => ListStrategy::match_object(obj),
                 _ => false
             },
             DataType::Schema(schema) => match strategy {
-                BasicSchemaStrategy::Object(s) => s.match_schema(schema),
-                BasicSchemaStrategy::Boolean(s) => s.match_schema(schema),
-                BasicSchemaStrategy::Null(s) => s.match_schema(schema),
-                BasicSchemaStrategy::Number(s) => s.match_schema(schema),
-                BasicSchemaStrategy::String(s) => s.match_schema(schema),
-                BasicSchemaStrategy::List(s) => s.match_schema(schema),
+                BasicSchemaStrategy::Object(_) => ObjectStrategy::match_schema(schema),
+                BasicSchemaStrategy::Boolean(_) => BooleanStrategy::match_schema(schema),
+                BasicSchemaStrategy::Null(_) => NullStrategy::match_schema(schema),
+                BasicSchemaStrategy::Number(_) => NumberStrategy::match_schema(schema),
+                BasicSchemaStrategy::String(_) => StringStrategy::match_schema(schema),
+                BasicSchemaStrategy::List(_) => ListStrategy::match_schema(schema),
                 _ => false
             },
             _ => false
