@@ -2,7 +2,7 @@ use serde_json::Value;
 
 use crate::strategy::{
     array::ListStrategy, object::ObjectStrategy, 
-    scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy}
+    scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy, TypelessStrategy}
 };
 
 pub enum BasicSchemaStrategy {
@@ -12,6 +12,7 @@ pub enum BasicSchemaStrategy {
     Boolean(BooleanStrategy),
     Number(NumberStrategy),
     String(StringStrategy),
+    Typeless(TypelessStrategy),
 }
 
 /// base schema strategy trait
