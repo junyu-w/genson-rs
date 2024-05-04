@@ -5,15 +5,6 @@ use crate::strategy::{
     scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy, TypelessStrategy}
 };
 
-pub enum BasicSchemaStrategy {
-    Object(ObjectStrategy),
-    List(ListStrategy),
-    Null(NullStrategy),
-    Boolean(BooleanStrategy),
-    Number(NumberStrategy),
-    String(StringStrategy),
-    Typeless(TypelessStrategy),
-}
 
 /// base schema strategy trait
 pub trait SchemaStrategy {

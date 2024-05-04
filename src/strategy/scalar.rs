@@ -187,6 +187,9 @@ impl SchemaStrategy for NumberStrategy {
     }
 }
 
+/// schema strategy for schemas with no type. This is only used when
+/// there is no other active strategy, and it will be merged into the
+/// first typed strategy that gets added.
 pub struct TypelessStrategy {
     extra_keywords: Value,
 }

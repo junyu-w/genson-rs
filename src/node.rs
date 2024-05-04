@@ -1,7 +1,9 @@
 use core::panic;
+use std::collections::HashSet;
 
-use serde_json::{Value, json};
-use crate::strategy::base::{BasicSchemaStrategy, SchemaStrategy};
+use serde_json::Value;
+use crate::strategy::BasicSchemaStrategy;
+use crate::strategy::base::SchemaStrategy;
 use crate::strategy::object::ObjectStrategy;
 use crate::strategy::array::ListStrategy;
 use crate::strategy::scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy, TypelessStrategy};
@@ -73,11 +75,18 @@ impl SchemaNode {
         self
     }
 
+    /// Convert the current schema node to a JSON schema
     pub fn to_schema(&self) -> Value {
-        // TODO: do I need this here?
+        let mut types: HashSet<String> = HashSet::new();
+        let mut generated_schemas: Vec<Value> = vec![];
+
+        self.active_strategies.iter().for_each(|strategy| {
+            let generated_schema = strategy.to_schema();
+        });
         unimplemented!()
     }
 
+    /// Get the current active strategy for the object, if not found create a new one.
     fn get_or_create_strategy_for_object(&mut self, object: &Value) -> &mut BasicSchemaStrategy {
         if let Some(idx) = self.get_strategy_for_kind(DataType::Object(object)) {
             return &mut self.active_strategies[idx];
@@ -88,6 +97,7 @@ impl SchemaNode {
         panic!("Could not find matching schema type for object: {object}")
     }
 
+    /// Get the current active strategy for the schema, if not found create a new one.
     fn get_or_create_strategy_for_schema(&mut self, schema: &Value) -> &mut BasicSchemaStrategy {
         if let Some(idx) = self.get_strategy_for_kind(DataType::Schema(schema)) {
             return &mut self.active_strategies[idx];
@@ -137,90 +147,25 @@ impl SchemaNode {
 
     fn strategy_does_match_schema_or_object(strategy: &BasicSchemaStrategy, schema_or_object: &DataType) -> bool {
         match schema_or_object {
-            DataType::Object(obj) => match strategy {
-                BasicSchemaStrategy::Object(_) => ObjectStrategy::match_object(obj),
-                BasicSchemaStrategy::Boolean(_) => BooleanStrategy::match_object(obj),
-                BasicSchemaStrategy::Null(_) => NullStrategy::match_object(obj),
-                BasicSchemaStrategy::Number(_) => NumberStrategy::match_object(obj),
-                BasicSchemaStrategy::String(_) => StringStrategy::match_object(obj),
-                BasicSchemaStrategy::List(_) => ListStrategy::match_object(obj),
-                _ => false
-            },
-            DataType::Schema(schema) => match strategy {
-                BasicSchemaStrategy::Object(_) => ObjectStrategy::match_schema(schema),
-                BasicSchemaStrategy::Boolean(_) => BooleanStrategy::match_schema(schema),
-                BasicSchemaStrategy::Null(_) => NullStrategy::match_schema(schema),
-                BasicSchemaStrategy::Number(_) => NumberStrategy::match_schema(schema),
-                BasicSchemaStrategy::String(_) => StringStrategy::match_schema(schema),
-                BasicSchemaStrategy::List(_) => ListStrategy::match_schema(schema),
-                _ => false
-            },
+            DataType::Object(obj) => strategy.match_object(obj),
+            DataType::Schema(schema) => strategy.match_schema(schema),
             _ => false
         }
     }
 
     /// Create a strategy for a schema or object based on which strategy it matches.
-    /// TODO: this is a bit of a mess, but I'm not sure how to clean it up.
     fn create_strategy_for_schema_or_object(schema_or_object: &DataType) -> Option<BasicSchemaStrategy> {
         match schema_or_object {
-            DataType::Object(obj) => {
-                if ObjectStrategy::match_object(obj) {
-                    Some(BasicSchemaStrategy::Object(ObjectStrategy::new()))
-                } else if BooleanStrategy::match_object(obj) {
-                    Some(BasicSchemaStrategy::Boolean(BooleanStrategy::new()))
-                } else if NullStrategy::match_object(obj) {
-                    Some(BasicSchemaStrategy::Null(NullStrategy::new()))
-                } else if NumberStrategy::match_object(obj) {
-                    Some(BasicSchemaStrategy::Number(NumberStrategy::new()))
-                } else if StringStrategy::match_object(obj) {
-                    Some(BasicSchemaStrategy::String(StringStrategy::new()))
-                } else if ListStrategy::match_object(obj) {
-                    Some(BasicSchemaStrategy::List(ListStrategy::new()))
-                } else {
-                    None
-                }
-            },
-            DataType::Schema(schema) => {
-                if ObjectStrategy::match_schema(schema) {
-                    Some(BasicSchemaStrategy::Object(ObjectStrategy::new()))
-                } else if BooleanStrategy::match_schema(schema) {
-                    Some(BasicSchemaStrategy::Boolean(BooleanStrategy::new()))
-                } else if NullStrategy::match_schema(schema) {
-                    Some(BasicSchemaStrategy::Null(NullStrategy::new()))
-                } else if NumberStrategy::match_schema(schema) {
-                    Some(BasicSchemaStrategy::Number(NumberStrategy::new()))
-                } else if StringStrategy::match_schema(schema) {
-                    Some(BasicSchemaStrategy::String(StringStrategy::new()))
-                } else if ListStrategy::match_schema(schema) {
-                    Some(BasicSchemaStrategy::List(ListStrategy::new()))
-                } else {
-                    None
-                }
-            }
+            DataType::Object(obj) => BasicSchemaStrategy::new_for_object(obj),
+            DataType::Schema(schema) => BasicSchemaStrategy::new_for_schema(schema),
             _ => None
         }
     }
 
     fn add_schema_or_object_to_strategy(strategy: &mut BasicSchemaStrategy, schema_or_object: DataType) {
         match schema_or_object {
-            DataType::Object(obj) => match strategy {
-                BasicSchemaStrategy::Object(s) => s.add_object(obj),
-                BasicSchemaStrategy::Boolean(s) => s.add_object(obj),
-                BasicSchemaStrategy::Null(s) => s.add_object(obj),
-                BasicSchemaStrategy::Number(s) => s.add_object(obj),
-                BasicSchemaStrategy::String(s) => s.add_object(obj),
-                BasicSchemaStrategy::List(s) => s.add_object(obj),
-                _ => panic!("Invalid object type to add")
-            },
-            DataType::Schema(schema) => match strategy {
-                BasicSchemaStrategy::Object(s) => s.add_schema(schema),
-                BasicSchemaStrategy::Boolean(s) => s.add_schema(schema),
-                BasicSchemaStrategy::Null(s) => s.add_schema(schema),
-                BasicSchemaStrategy::Number(s) => s.add_schema(schema),
-                BasicSchemaStrategy::String(s) => s.add_schema(schema),
-                BasicSchemaStrategy::List(s) => s.add_schema(schema),
-                _ => panic!("Invalid schema type to add")
-            },
+            DataType::Object(obj) => strategy.add_object(obj),
+            DataType::Schema(schema) => strategy.add_schema(schema),
             _ => ()
         }
     }
