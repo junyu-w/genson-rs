@@ -7,6 +7,7 @@ use serde_json::{Value, json};
 use crate::node::{SchemaNode, DataType};
 use crate::strategy::base::SchemaStrategy;
 
+#[derive(Debug)]
 pub struct ObjectStrategy {
     // TODO: this is redeclared everywhere, how to avoid this?
     extra_keywords: Value,

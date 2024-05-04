@@ -25,6 +25,7 @@ pub trait ListSchemaStrategy: SchemaStrategy {
 
 /// strategy for list-style array schemas. This is the default
 /// strategy for arrays.
+#[derive(Debug)]
 pub struct ListStrategy {
     extra_keywords: Value,
     items: Vec<SchemaNode>,

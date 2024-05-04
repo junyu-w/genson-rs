@@ -1,15 +1,14 @@
 use core::panic;
 use std::collections::HashSet;
 
-use serde_json::Value;
+use serde_json::{json, Value};
 use crate::strategy::BasicSchemaStrategy;
 use crate::strategy::base::SchemaStrategy;
-use crate::strategy::object::ObjectStrategy;
-use crate::strategy::array::ListStrategy;
-use crate::strategy::scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy, TypelessStrategy};
+use crate::strategy::scalar::TypelessStrategy;
 
 /// Basic schema generator class. SchemaNode objects can be loaded
 /// up with existing schemas and objects before being serialized.
+#[derive(Debug)]
 pub struct SchemaNode {
     active_strategies: Vec<BasicSchemaStrategy>
 }
@@ -77,13 +76,41 @@ impl SchemaNode {
 
     /// Convert the current schema node to a JSON schema
     pub fn to_schema(&self) -> Value {
-        let mut types: HashSet<String> = HashSet::new();
+        let mut scalar_types: HashSet<String> = HashSet::new();
         let mut generated_schemas: Vec<Value> = vec![];
 
         self.active_strategies.iter().for_each(|strategy| {
-            let generated_schema = strategy.to_schema();
+            let generated_schema: Value = strategy.to_schema();
+            if let Value::Object(ref schema) = generated_schema {
+                // if schema is scalar type
+                if schema.keys().len() == 1 && schema.contains_key("type") {
+                    scalar_types.insert(schema["type"].to_string());
+                } else {
+                    generated_schemas.push(generated_schema);
+                }
+            } else {
+                panic!("Invalid schema type for strategy {:?}", strategy);
+            }
         });
-        unimplemented!()
+
+        if scalar_types.len() > 0 {
+            if scalar_types.len() == 1 {
+                let scalar_type = scalar_types.iter().next().unwrap();
+                generated_schemas.push(json!({"type": scalar_type}));
+            } else {
+                let mut scalar_type_list: Vec<String> = scalar_types.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+                scalar_type_list.sort();
+                generated_schemas.push(json!({"type": scalar_type_list}));
+            }
+        }
+
+        if generated_schemas.len() == 1 {
+            return generated_schemas[0].clone();
+        } else if generated_schemas.len() > 0 {
+            return json!({"anyOf": generated_schemas});
+        } else {
+            return json!({});
+        }
     }
 
     /// Get the current active strategy for the object, if not found create a new one.

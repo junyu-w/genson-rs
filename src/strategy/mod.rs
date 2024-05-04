@@ -10,6 +10,7 @@ use object::ObjectStrategy;
 use scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy, TypelessStrategy};
 use base::{SchemaStrategy, TypelessSchemaStrategy};
 
+#[derive(Debug)]
 pub enum BasicSchemaStrategy {
     Object(ObjectStrategy),
     List(ListStrategy),

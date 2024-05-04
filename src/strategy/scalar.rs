@@ -2,6 +2,7 @@ use serde_json::{Value, json};
 
 use crate::strategy::base::{SchemaStrategy, TypelessSchemaStrategy, ScalarType};
 
+#[derive(Debug)]
 pub struct NullStrategy {
     extra_keywords: Value,
 }
@@ -42,6 +43,7 @@ impl SchemaStrategy for NullStrategy {
     }
 }
 
+#[derive(Debug)]
 pub struct BooleanStrategy {
     extra_keywords: Value,
 }
@@ -82,7 +84,7 @@ impl SchemaStrategy for BooleanStrategy {
     }
 }
 
-
+#[derive(Debug)]
 pub struct StringStrategy {
     extra_keywords: Value,
 }
@@ -123,6 +125,7 @@ impl TypelessSchemaStrategy for StringStrategy {
     }
 }
 
+#[derive(Debug)]
 pub struct NumberStrategy {
     number_type: &'static str,
     extra_keywords: Value,
@@ -190,6 +193,7 @@ impl SchemaStrategy for NumberStrategy {
 /// schema strategy for schemas with no type. This is only used when
 /// there is no other active strategy, and it will be merged into the
 /// first typed strategy that gets added.
+#[derive(Debug)]
 pub struct TypelessStrategy {
     extra_keywords: Value,
 }
