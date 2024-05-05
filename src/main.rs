@@ -1,7 +1,5 @@
 use clap::Parser;
-
-mod node;
-mod strategy;
+use genson_rs::{add_object_file, get_builder};
 
 #[derive(Parser)]
 #[command(name = "Genson")]
@@ -24,10 +22,12 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
+    let mut builder = get_builder(None);
 
     if let Some(json_file) = cli.json_file.as_deref() {
         println!("JSON file: {}", json_file);
+        add_object_file(&mut builder, json_file)
     }
 
-    let node = node::SchemaNode::new();
+    println!("{}", builder.to_json());
 }
