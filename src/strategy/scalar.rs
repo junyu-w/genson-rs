@@ -41,6 +41,10 @@ impl SchemaStrategy for NullStrategy {
     fn match_object(object: &Value) -> bool {
         <Self as TypelessSchemaStrategy>::match_object(object)
     }
+
+    fn add_object(&mut self, object: &Value) {
+        <Self as TypelessSchemaStrategy>::add_object(self, object)
+    }
 }
 
 #[derive(Debug)]
@@ -82,6 +86,10 @@ impl SchemaStrategy for BooleanStrategy {
     fn match_object(object: &Value) -> bool {
         <Self as TypelessSchemaStrategy>::match_object(object)
     }
+
+    fn add_object(&mut self, object: &Value) {
+        <Self as TypelessSchemaStrategy>::add_object(self, object)
+    }
 }
 
 #[derive(Debug)]
@@ -112,6 +120,10 @@ impl SchemaStrategy for StringStrategy {
 
     fn match_object(object: &Value) -> bool {
         <Self as TypelessSchemaStrategy>::match_object(object)
+    }
+
+    fn add_object(&mut self, object: &Value) {
+        <Self as TypelessSchemaStrategy>::add_object(self, object)
     }
 }
 
@@ -153,7 +165,6 @@ impl TypelessSchemaStrategy for NumberStrategy {
         let mut schema = SchemaStrategy::to_schema(self);
         schema["type"] = Value::String(self.number_type.to_string());
         schema
-    
     }
 }
 
@@ -162,7 +173,7 @@ impl SchemaStrategy for NumberStrategy {
         if schema["type"] == "number" {
             self.number_type = "number";
         }
-        SchemaStrategy::add_schema(self, schema);
+        self.add_extra_keywords(schema)
     }
 
     fn add_object(&mut self, object: &Value) {
@@ -224,5 +235,9 @@ impl SchemaStrategy for TypelessStrategy {
 
     fn match_object(_: &Value) -> bool {
         false
+    }
+
+    fn add_object(&mut self, _object: &Value) {
+        ()
     }
 }

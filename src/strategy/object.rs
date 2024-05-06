@@ -50,18 +50,24 @@ impl SchemaStrategy for ObjectStrategy {
         let mut properties = HashSet::new();
         if let Value::Object(object) = object {
             object.iter().for_each(|(prop, subobj)| {
+                let mut pattern: Option<&str> = None;
                 if !self.properties.contains_key(prop) {
                     let pattern_matcher = |p: &str| Regex::new(p).unwrap().is_match(prop);
-                    self.pattern_properties.iter_mut().find(|(p, _)| pattern_matcher(p)).map(|(_, node)| {
+                    self.pattern_properties.iter_mut().find(|(p, _)| pattern_matcher(p)).map(|(p, node)| {
+                        pattern = Some(p);
                         node.add_object(DataType::Object(subobj));
                     });
-                } else {
+                }
+
+                if pattern.is_none() {
                     properties.insert(prop.to_string());
+                    if !self.properties.contains_key(prop) {
+                        self.properties.insert(prop.to_string(), SchemaNode::new());
+                    }
                     self.properties.get_mut(prop).unwrap().add_object(DataType::Object(subobj));
                 }
             });
         }
-       
 
         if self.required_properties.len() == 0 {
             self.required_properties.extend(properties);
@@ -71,8 +77,12 @@ impl SchemaStrategy for ObjectStrategy {
         }
     }
 
+    fn add_schema(&mut self, _schema: &Value) {
+        unimplemented!()
+    }
+
     fn to_schema(&self) -> Value {
-        let mut schema = SchemaStrategy::to_schema(self);
+        let mut schema = self.extra_keywords.clone();
         schema["type"] = "object".into();
         if self.properties.len() > 0 {
             schema["propperties"] = self.properties_to_schema(&self.properties);
@@ -80,7 +90,7 @@ impl SchemaStrategy for ObjectStrategy {
         if self.pattern_properties.len() > 0 {
             schema["patternProperties"] = self.properties_to_schema(&self.pattern_properties);
         }
-        if self.required_properties.len() > 0 && self.include_empty_required {
+        if self.required_properties.len() > 0 || self.include_empty_required {
             let required_props: Vec<String> = self.required_properties.iter().map(|p| p.to_string()).collect();
             schema["required"] = required_props.into();
         }

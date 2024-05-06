@@ -10,9 +10,7 @@ pub trait SchemaStrategy {
         self.add_extra_keywords(schema)
     }
 
-    fn add_object(&mut self, _object: &Value) {
-        ()
-    }
+    fn add_object(&mut self, _object: &Value);
 
     fn to_schema(&self) -> Value {
         self.get_extra_keywords().clone()
@@ -60,6 +58,11 @@ pub enum ScalarType {
 pub trait TypelessSchemaStrategy: SchemaStrategy {
     fn js_type() -> &'static str;
     fn rs_type() -> ScalarType;
+
+    fn add_object(&mut self, _object: &Value) {
+        ()
+    }
+
     fn to_schema(&self) -> Value {
         let mut schema = SchemaStrategy::to_schema(self);
         schema["type"] = Value::String(Self::js_type().to_string());

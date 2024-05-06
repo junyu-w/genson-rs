@@ -10,6 +10,8 @@ use object::ObjectStrategy;
 use scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy, TypelessStrategy};
 use base::{SchemaStrategy, TypelessSchemaStrategy};
 
+use self::array::ListSchemaStrategy;
+
 #[derive(Debug)]
 pub enum BasicSchemaStrategy {
     Object(ObjectStrategy),
@@ -28,7 +30,7 @@ impl BasicSchemaStrategy {
     pub fn new_for_object(object: &Value) -> Option<Self> {
         if ObjectStrategy::match_object(object) {
             Some(BasicSchemaStrategy::Object(ObjectStrategy::new()))
-        } else if ListStrategy::match_object(object) {
+        } else if <ListStrategy as ListSchemaStrategy>::match_object(object) {
             Some(BasicSchemaStrategy::List(ListStrategy::new()))
         } else if <NullStrategy as SchemaStrategy>::match_object(object) {
             Some(BasicSchemaStrategy::Null(NullStrategy::new()))
@@ -64,7 +66,7 @@ impl BasicSchemaStrategy {
     pub fn to_schema(&self) -> Value {
         match self {
             BasicSchemaStrategy::Object(strategy) => strategy.to_schema(),
-            BasicSchemaStrategy::List(strategy) => strategy.to_schema(),
+            BasicSchemaStrategy::List(strategy) => ListSchemaStrategy::to_schema(strategy),
             BasicSchemaStrategy::Null(strategy) => TypelessSchemaStrategy::to_schema(strategy),
             BasicSchemaStrategy::Boolean(strategy) => TypelessSchemaStrategy::to_schema(strategy),
             BasicSchemaStrategy::Number(strategy) => TypelessSchemaStrategy::to_schema(strategy),
@@ -76,7 +78,7 @@ impl BasicSchemaStrategy {
     pub fn match_object(&self, object: &Value) -> bool {
         match self {
             BasicSchemaStrategy::Object(_) => ObjectStrategy::match_object(object),
-            BasicSchemaStrategy::List(_) => ListStrategy::match_object(object),
+            BasicSchemaStrategy::List(_) => <ListStrategy as ListSchemaStrategy>::match_object(object),
             BasicSchemaStrategy::Null(_) => <NullStrategy as SchemaStrategy>::match_object(object),
             BasicSchemaStrategy::Boolean(_) => <BooleanStrategy as SchemaStrategy>::match_object(object),
             BasicSchemaStrategy::Number(_) => <NumberStrategy as SchemaStrategy>::match_object(object),
@@ -113,10 +115,10 @@ impl BasicSchemaStrategy {
         match self {
             BasicSchemaStrategy::Object(strategy) => strategy.add_object(object),
             BasicSchemaStrategy::List(strategy) => strategy.add_object(object),
-            BasicSchemaStrategy::Null(strategy) => strategy.add_object(object),
-            BasicSchemaStrategy::Boolean(strategy) => strategy.add_object(object),
-            BasicSchemaStrategy::Number(strategy) => strategy.add_object(object),
-            BasicSchemaStrategy::String(strategy) => strategy.add_object(object),
+            BasicSchemaStrategy::Null(strategy) => TypelessSchemaStrategy::add_object(strategy, object),
+            BasicSchemaStrategy::Boolean(strategy) => TypelessSchemaStrategy::add_object(strategy, object),
+            BasicSchemaStrategy::Number(strategy) => TypelessSchemaStrategy::add_object(strategy, object),
+            BasicSchemaStrategy::String(strategy) => TypelessSchemaStrategy::add_object(strategy, object),
             BasicSchemaStrategy::Typeless(strategy) => strategy.add_object(object),
         }
     }

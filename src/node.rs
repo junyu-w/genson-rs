@@ -17,8 +17,11 @@ pub struct SchemaNode {
 /// to a SchemaNode. It wraps references to Value objects and SchemaNode
 /// objects so when it gets dropped the underlying data is not dropped.
 pub enum DataType<'a> {
+    /// SchemaNode represents a JSON schema
     Schema(&'a Value),
+    /// Object represents a valid JSON object (array, object, string, number, boolean, null)
     Object(&'a Value),
+    /// SchemaNode reference
     SchemaNode(&'a SchemaNode),
 }
 
@@ -103,6 +106,9 @@ impl SchemaNode {
                 generated_schemas.push(json!({"type": scalar_type_list}));
             }
         }
+        // println!("==schema_node: {:?}", self);
+        // println!("==generated_schemas: {:?}", generated_schemas);
+        // println!("==scalar_types: {:?}\n", scalar_types);
 
         if generated_schemas.len() == 1 {
             return generated_schemas[0].clone();
@@ -197,4 +203,3 @@ impl SchemaNode {
         }
     }
 }
-

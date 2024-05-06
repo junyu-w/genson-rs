@@ -94,7 +94,7 @@ impl ListSchemaStrategy for ListStrategy {
     }
 
     fn items_to_schema(&self) -> Value {
-        unimplemented!()
+        self.items.iter().map(|node| node.to_schema()).collect()
     }
 }
 
