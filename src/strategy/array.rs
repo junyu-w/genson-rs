@@ -24,18 +24,19 @@ pub trait ListSchemaStrategy: SchemaStrategy {
 }
 
 /// strategy for list-style array schemas. This is the default
-/// strategy for arrays.
+/// strategy for arrays. List-style arrays are arrays where all
+/// items are of the same type.
 #[derive(Debug)]
 pub struct ListStrategy {
     extra_keywords: Value,
-    items: Vec<SchemaNode>,
+    items: [SchemaNode; 1],
 }
 
 impl ListStrategy {
     pub fn new() -> Self {
         ListStrategy {
             extra_keywords: json!({}),
-            items: vec![SchemaNode::new()]
+            items: [SchemaNode::new()],
         }
     }
 }
@@ -94,8 +95,15 @@ impl ListSchemaStrategy for ListStrategy {
     }
 
     fn items_to_schema(&self) -> Value {
-        self.items.iter().map(|node| node.to_schema()).collect()
+        self.items[0].to_schema()
     }
 }
 
 // TODO: implement tuple strategy
+/// strategy for tuple-style array schemas. Tuple-style arrays are arrays
+/// where each item can have a different schema. The "items" keyword is an
+/// array of schemas, one for each item in the tuple.
+pub struct _TupleStrategy {
+    extra_keywords: Value,
+    items: Vec<SchemaNode>,
+}

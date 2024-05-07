@@ -1,6 +1,6 @@
 use serde_json::{Value, json};
 
-use crate::strategy::base::{SchemaStrategy, TypelessSchemaStrategy, ScalarType};
+use crate::strategy::base::{SchemaStrategy, TypelessSchemaStrategy};
 
 #[derive(Debug)]
 pub struct NullStrategy {
@@ -19,10 +19,6 @@ impl TypelessSchemaStrategy for NullStrategy {
     fn js_type() -> &'static str {
         "null"
     }
-
-    fn rs_type() -> ScalarType {
-        ScalarType::Null
-    }
 }
 
 impl SchemaStrategy for NullStrategy {
@@ -35,15 +31,15 @@ impl SchemaStrategy for NullStrategy {
     }
 
     fn match_schema(schema: &Value) -> bool {
-        <Self as TypelessSchemaStrategy>::match_schema(schema)
+        schema["type"] == "null"
     }
 
     fn match_object(object: &Value) -> bool {
-        <Self as TypelessSchemaStrategy>::match_object(object)
+        object.is_null()
     }
 
-    fn add_object(&mut self, object: &Value) {
-        <Self as TypelessSchemaStrategy>::add_object(self, object)
+    fn add_object(&mut self, _object: &Value) {
+        ()
     }
 }
 
@@ -64,10 +60,6 @@ impl TypelessSchemaStrategy for BooleanStrategy {
     fn js_type() -> &'static str {
         "boolean"
     }
-
-    fn rs_type() -> ScalarType {
-        ScalarType::Boolean
-    }
 }
 
 impl SchemaStrategy for BooleanStrategy {
@@ -80,15 +72,15 @@ impl SchemaStrategy for BooleanStrategy {
     }
 
     fn match_schema(schema: &Value) -> bool {
-        <Self as TypelessSchemaStrategy>::match_schema(schema)
+        schema["type"] == "boolean"
     }
 
     fn match_object(object: &Value) -> bool {
-        <Self as TypelessSchemaStrategy>::match_object(object)
+        object.is_boolean()
     }
 
-    fn add_object(&mut self, object: &Value) {
-        <Self as TypelessSchemaStrategy>::add_object(self, object)
+    fn add_object(&mut self, _object: &Value) {
+        ()
     }
 }
 
@@ -115,25 +107,21 @@ impl SchemaStrategy for StringStrategy {
     }
 
     fn match_schema(schema: &Value) -> bool {
-        <Self as TypelessSchemaStrategy>::match_schema(schema)
+        schema["type"] == "string"
     }
 
     fn match_object(object: &Value) -> bool {
-        <Self as TypelessSchemaStrategy>::match_object(object)
+        object.is_string()
     }
 
-    fn add_object(&mut self, object: &Value) {
-        <Self as TypelessSchemaStrategy>::add_object(self, object)
+    fn add_object(&mut self, _object: &Value) {
+        ()
     }
 }
 
 impl TypelessSchemaStrategy for StringStrategy {
     fn js_type() -> &'static str {
         "string"
-    }
-
-    fn rs_type() -> ScalarType {
-        ScalarType::String
     }
 }
 
@@ -157,10 +145,6 @@ impl TypelessSchemaStrategy for NumberStrategy {
         "integer|number"
     }
 
-    fn rs_type() -> ScalarType {
-        ScalarType::Number
-    }
-
     fn to_schema(&self) -> Value {
         let mut schema = SchemaStrategy::to_schema(self);
         schema["type"] = Value::String(self.number_type.to_string());
@@ -177,10 +161,8 @@ impl SchemaStrategy for NumberStrategy {
     }
 
     fn add_object(&mut self, object: &Value) {
-        if object.is_number() {
-            if let Some(_) = object.as_i64() {
-                self.number_type = "number";
-            }
+        if object.is_f64() {
+            self.number_type = "number";
         }
     }
 
@@ -193,11 +175,11 @@ impl SchemaStrategy for NumberStrategy {
     }
 
     fn match_schema(schema: &Value) -> bool {
-        <Self as TypelessSchemaStrategy>::match_schema(schema)
+        schema["type"] == "number" || schema["type"] == "integer"
     }
 
     fn match_object(object: &Value) -> bool {
-        <Self as TypelessSchemaStrategy>::match_object(object)
+        object.is_number()
     }
 }
 

@@ -91,7 +91,8 @@ impl SchemaStrategy for ObjectStrategy {
             schema["patternProperties"] = self.properties_to_schema(&self.pattern_properties);
         }
         if self.required_properties.len() > 0 || self.include_empty_required {
-            let required_props: Vec<String> = self.required_properties.iter().map(|p| p.to_string()).collect();
+            let mut required_props: Vec<String> = self.required_properties.iter().map(|p| p.to_string()).collect();
+            required_props.sort();
             schema["required"] = required_props.into();
         }
         schema

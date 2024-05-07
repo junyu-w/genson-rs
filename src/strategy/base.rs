@@ -47,38 +47,13 @@ pub trait SchemaStrategy {
 }
 
 
-pub enum ScalarType {
-    Null,
-    String,
-    Number,
-    Boolean,
-}
-
 /// base schema strategy trait for scalar types
 pub trait TypelessSchemaStrategy: SchemaStrategy {
     fn js_type() -> &'static str;
-    fn rs_type() -> ScalarType;
-
-    fn add_object(&mut self, _object: &Value) {
-        ()
-    }
 
     fn to_schema(&self) -> Value {
         let mut schema = SchemaStrategy::to_schema(self);
         schema["type"] = Value::String(Self::js_type().to_string());
         schema
-    }
-
-    fn match_schema(schema: &Value) -> bool {
-        Self::js_type().split("|").any(|t| schema["type"] == t)
-    }
-
-    fn match_object(object: &Value) -> bool {
-        match Self::rs_type() {
-            ScalarType::Null => object.is_null(),
-            ScalarType::String => object.is_string(),
-            ScalarType::Number => object.is_number(),
-            ScalarType::Boolean => object.is_boolean(),
-        }
     }
 }

@@ -115,10 +115,10 @@ impl BasicSchemaStrategy {
         match self {
             BasicSchemaStrategy::Object(strategy) => strategy.add_object(object),
             BasicSchemaStrategy::List(strategy) => strategy.add_object(object),
-            BasicSchemaStrategy::Null(strategy) => TypelessSchemaStrategy::add_object(strategy, object),
-            BasicSchemaStrategy::Boolean(strategy) => TypelessSchemaStrategy::add_object(strategy, object),
-            BasicSchemaStrategy::Number(strategy) => TypelessSchemaStrategy::add_object(strategy, object),
-            BasicSchemaStrategy::String(strategy) => TypelessSchemaStrategy::add_object(strategy, object),
+            BasicSchemaStrategy::Null(strategy) => strategy.add_object(object),
+            BasicSchemaStrategy::Boolean(strategy) => strategy.add_object(object),
+            BasicSchemaStrategy::Number(strategy) => strategy.add_object(object),
+            BasicSchemaStrategy::String(strategy) => strategy.add_object(object),
             BasicSchemaStrategy::Typeless(strategy) => strategy.add_object(object),
         }
     }
