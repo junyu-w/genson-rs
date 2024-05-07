@@ -48,7 +48,7 @@ pub trait SchemaStrategy {
 
 
 /// base schema strategy trait for scalar types
-pub trait TypelessSchemaStrategy: SchemaStrategy {
+pub trait ScalarSchemaStrategy: SchemaStrategy {
     fn js_type() -> &'static str;
 
     fn to_schema(&self) -> Value {

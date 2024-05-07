@@ -1,6 +1,6 @@
 use serde_json::{Value, json};
 
-use crate::strategy::base::{SchemaStrategy, TypelessSchemaStrategy};
+use crate::strategy::base::{SchemaStrategy, ScalarSchemaStrategy};
 
 #[derive(Debug)]
 pub struct NullStrategy {
@@ -15,7 +15,7 @@ impl NullStrategy {
     }
 }
 
-impl TypelessSchemaStrategy for NullStrategy {
+impl ScalarSchemaStrategy for NullStrategy {
     fn js_type() -> &'static str {
         "null"
     }
@@ -56,7 +56,7 @@ impl BooleanStrategy {
     }
 }
 
-impl TypelessSchemaStrategy for BooleanStrategy {
+impl ScalarSchemaStrategy for BooleanStrategy {
     fn js_type() -> &'static str {
         "boolean"
     }
@@ -119,7 +119,7 @@ impl SchemaStrategy for StringStrategy {
     }
 }
 
-impl TypelessSchemaStrategy for StringStrategy {
+impl ScalarSchemaStrategy for StringStrategy {
     fn js_type() -> &'static str {
         "string"
     }
@@ -140,7 +140,7 @@ impl NumberStrategy {
     }
 }
 
-impl TypelessSchemaStrategy for NumberStrategy {
+impl ScalarSchemaStrategy for NumberStrategy {
     fn js_type() -> &'static str {
         "integer|number"
     }

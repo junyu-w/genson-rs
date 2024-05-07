@@ -8,7 +8,7 @@ use serde_json::Value;
 use array::ListStrategy;
 use object::ObjectStrategy;
 use scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy, TypelessStrategy};
-use base::{SchemaStrategy, TypelessSchemaStrategy};
+use base::{SchemaStrategy, ScalarSchemaStrategy};
 
 use self::array::ListSchemaStrategy;
 
@@ -67,10 +67,10 @@ impl BasicSchemaStrategy {
         match self {
             BasicSchemaStrategy::Object(strategy) => strategy.to_schema(),
             BasicSchemaStrategy::List(strategy) => ListSchemaStrategy::to_schema(strategy),
-            BasicSchemaStrategy::Null(strategy) => TypelessSchemaStrategy::to_schema(strategy),
-            BasicSchemaStrategy::Boolean(strategy) => TypelessSchemaStrategy::to_schema(strategy),
-            BasicSchemaStrategy::Number(strategy) => TypelessSchemaStrategy::to_schema(strategy),
-            BasicSchemaStrategy::String(strategy) => TypelessSchemaStrategy::to_schema(strategy),
+            BasicSchemaStrategy::Null(strategy) => ScalarSchemaStrategy::to_schema(strategy),
+            BasicSchemaStrategy::Boolean(strategy) => ScalarSchemaStrategy::to_schema(strategy),
+            BasicSchemaStrategy::Number(strategy) => ScalarSchemaStrategy::to_schema(strategy),
+            BasicSchemaStrategy::String(strategy) => ScalarSchemaStrategy::to_schema(strategy),
             BasicSchemaStrategy::Typeless(strategy) => strategy.to_schema(),
         }
     }
