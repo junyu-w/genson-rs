@@ -22,7 +22,7 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
-    let mut builder = get_builder(None);
+    let mut builder = get_builder(Some("AUTO"));
 
     if let Some(json_file) = cli.json_file.as_deref() {
         add_object_file(&mut builder, json_file)

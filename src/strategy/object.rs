@@ -53,10 +53,13 @@ impl SchemaStrategy for ObjectStrategy {
                 let mut pattern: Option<&str> = None;
                 if !self.properties.contains_key(prop) {
                     let pattern_matcher = |p: &str| Regex::new(p).unwrap().is_match(prop);
-                    self.pattern_properties.iter_mut().find(|(p, _)| pattern_matcher(p)).map(|(p, node)| {
-                        pattern = Some(p);
-                        node.add_object(DataType::Object(subobj));
-                    });
+                    self.pattern_properties
+                        .iter_mut()
+                        .find(|(p, _)| pattern_matcher(p))
+                        .map(|(p, node)| {
+                            pattern = Some(p);
+                            node.add_object(DataType::Object(subobj));
+                        });
                 }
 
                 if pattern.is_none() {
