@@ -1,7 +1,9 @@
 use std::process;
 
+use serde_json::Value;
 use clap::Parser;
 use genson_rs::get_builder;
+
 
 #[derive(Parser)]
 #[command(name = "Genson")]
@@ -28,7 +30,7 @@ fn main() {
 
     if let Some(json_file) = cli.json_file.as_deref() {
         let object_str = std::fs::read_to_string(json_file).unwrap();
-        let object: serde_json::Value = serde_json::from_str(&object_str).unwrap();
+        let object: Value = serde_json::from_str(&object_str).unwrap();
 
         builder.add_object(&object);
         println!("{}", builder.to_json());
