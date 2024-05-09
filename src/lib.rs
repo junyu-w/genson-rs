@@ -17,5 +17,5 @@ pub fn add_schema_file(builder: &mut SchemaBuilder, file: &str) {
 pub fn add_object_file(builder: &mut SchemaBuilder, file: &str) {
     let object_str = std::fs::read_to_string(file).unwrap();
     let object: serde_json::Value = serde_json::from_str(&object_str).unwrap();
-    builder.add_object(object);
+    builder.add_object(&object);
 }

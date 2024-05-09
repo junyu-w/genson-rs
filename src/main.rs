@@ -1,5 +1,7 @@
+use std::process;
+
 use clap::Parser;
-use genson_rs::{add_object_file, get_builder};
+use genson_rs::get_builder;
 
 #[derive(Parser)]
 #[command(name = "Genson")]
@@ -25,8 +27,13 @@ fn main() {
     let mut builder = get_builder(Some("AUTO"));
 
     if let Some(json_file) = cli.json_file.as_deref() {
-        add_object_file(&mut builder, json_file)
-    }
+        let object_str = std::fs::read_to_string(json_file).unwrap();
+        let object: serde_json::Value = serde_json::from_str(&object_str).unwrap();
 
-    println!("{}", builder.to_json());
+        builder.add_object(&object);
+        println!("{}", builder.to_json());
+        // NOTE: early exit here to avoid dropping of the `object` variable
+        //  which takes about 15~35% of the total runtime (depending on the size of the object)
+        process::exit(0);
+    }
 }

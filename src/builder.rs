@@ -51,8 +51,8 @@ impl SchemaBuilder {
     }
 
     /// Modify the schema to accomodate the input object
-    pub fn add_object(&mut self, object: Value) {
-        self.root_node.add_object(DataType::Object(&object));
+    pub fn add_object(&mut self, object: &Value) {
+        self.root_node.add_object(DataType::Object(object));
     }
 
     /// Export the currently constructed schema as a JSON object
