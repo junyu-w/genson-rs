@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::collections::hash_set::HashSet;
 use regex::Regex;
 
-use serde_json::{Value, json};
+use serde_json::{Value, json, Map};
 
 use crate::node::{SchemaNode, DataType};
 use crate::strategy::base::SchemaStrategy;
@@ -80,15 +80,51 @@ impl SchemaStrategy for ObjectStrategy {
         }
     }
 
-    fn add_schema(&mut self, _schema: &Value) {
-        unimplemented!()
+    fn add_schema(&mut self, schema: &Value) {
+        if let Value::Object(schema_object) = schema {
+            self.add_extra_keywords(schema);
+
+            let properties_updater = 
+                    |properties: &mut HashMap<String, SchemaNode>, schema_object: &Map<String, Value>, prop_key: &str| {
+                if let Some(schema_properties) = schema_object[prop_key].as_object() {
+                    schema_properties.iter().for_each(|(prop, sub_schema)| {
+                        let sub_node = properties.entry(prop.to_string())
+                            .or_insert(SchemaNode::new());
+                        sub_node.add_schema(DataType::Schema(sub_schema));
+                    });
+                }
+            };
+
+            if schema_object.contains_key("properties") {
+                properties_updater(&mut self.properties, schema_object, "properties");
+            }
+            if schema_object.contains_key("patternProperties") {
+                properties_updater(&mut self.pattern_properties, schema_object, "patternProperties");
+            }
+            if schema_object.contains_key("required") {
+                if let Value::Array(required_fields) = &schema_object["required"] {
+                    if required_fields.len() == 0 {
+                        // ??: not sure why this is needed
+                        self.include_empty_required = true;
+                    }
+                    if self.required_properties.len() == 0 {
+                        self.required_properties.extend(required_fields.iter().map(|v| v.as_str().unwrap().to_string()));
+                    } else {
+                        // take the intersection
+                        self.required_properties.retain(|p| required_fields.contains(&Value::String(p.to_string())));
+                    }
+                }
+            }
+        } else {
+            panic!("Invalid schema type - must be a valid JSON object")
+        }
     }
 
     fn to_schema(&self) -> Value {
         let mut schema = self.extra_keywords.clone();
         schema["type"] = "object".into();
         if self.properties.len() > 0 {
-            schema["propperties"] = self.properties_to_schema(&self.properties);
+            schema["properties"] = self.properties_to_schema(&self.properties);
         }
         if self.pattern_properties.len() > 0 {
             schema["patternProperties"] = self.properties_to_schema(&self.pattern_properties);

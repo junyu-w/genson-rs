@@ -38,7 +38,7 @@ impl SchemaNode {
             DataType::Schema(schema) => schema.clone(),
             _ => panic!("Invalid schema type")
         };
-        
+
         for subschema in SchemaNode::get_subschemas(&schema) {
             let active_strategy = self.get_or_create_strategy_for_schema(&subschema);
             SchemaNode::add_schema_or_object_to_strategy(active_strategy, DataType::Schema(&subschema));
@@ -87,7 +87,7 @@ impl SchemaNode {
             if let Value::Object(ref schema) = generated_schema {
                 // if schema is scalar type
                 if schema.keys().len() == 1 && schema.contains_key("type") {
-                    scalar_types.insert(schema["type"].to_string());
+                    scalar_types.insert(schema["type"].as_str().unwrap().to_string());
                 } else {
                     generated_schemas.push(generated_schema);
                 }

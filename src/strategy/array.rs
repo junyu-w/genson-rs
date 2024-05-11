@@ -1,5 +1,6 @@
 use core::slice::{IterMut, Iter};
 use serde_json::{Value, json};
+use rayon::prelude::*;
 
 use crate::strategy::base::SchemaStrategy;
 use crate::node::{SchemaNode, DataType};
@@ -64,9 +65,22 @@ impl SchemaStrategy for ListStrategy {
             Value::Array(objects) => {
                 let items = self.get_items_mut();
                 items.for_each(|node| {
-                    objects.iter().for_each(|obj| {
-                        node.add_object(DataType::Object(obj));
-                    });
+                    // parallelize process of objects by splitting them into partitions
+                    // and processing each partition in parallel with their own schema node
+                    // and then merging the results
+                    let combined_node = objects.par_iter().fold(
+                        || SchemaNode::new(),
+                        |mut temp_node, obj| {
+                            temp_node.add_object(DataType::Object(obj));
+                            temp_node
+                        }
+                    ).reduce_with(
+                        |mut first_node, next_node| {
+                            first_node.add_schema(DataType::Schema(&next_node.to_schema()));
+                            first_node
+                        } 
+                    ).unwrap_or(SchemaNode::new());
+                    node.add_schema(DataType::SchemaNode(&combined_node));
                 });
             },
             _ => ()
