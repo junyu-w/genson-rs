@@ -5,7 +5,7 @@ pub mod object;
 
 use serde_json::Value;
 
-use array::ListStrategy;
+use array::{ListStrategy, TupleStrategy};
 use object::ObjectStrategy;
 use scalar::{BooleanStrategy, NullStrategy, NumberStrategy, StringStrategy, TypelessStrategy};
 use base::{SchemaStrategy, ScalarSchemaStrategy};
@@ -16,6 +16,7 @@ use self::array::ListSchemaStrategy;
 pub enum BasicSchemaStrategy {
     Object(ObjectStrategy),
     List(ListStrategy),
+    Tuple(TupleStrategy),
     Null(NullStrategy),
     Boolean(BooleanStrategy),
     Number(NumberStrategy),
@@ -32,6 +33,8 @@ impl BasicSchemaStrategy {
             Some(BasicSchemaStrategy::Object(ObjectStrategy::new()))
         } else if <ListStrategy as ListSchemaStrategy>::match_object(object) {
             Some(BasicSchemaStrategy::List(ListStrategy::new()))
+        } else if <TupleStrategy as ListSchemaStrategy>::match_object(object) {
+            Some(BasicSchemaStrategy::Tuple(TupleStrategy::new()))
         } else if <NullStrategy as SchemaStrategy>::match_object(object) {
             Some(BasicSchemaStrategy::Null(NullStrategy::new()))
         } else if <BooleanStrategy as SchemaStrategy>::match_object(object) {
@@ -50,6 +53,8 @@ impl BasicSchemaStrategy {
             Some(BasicSchemaStrategy::Object(ObjectStrategy::new()))
         } else if ListStrategy::match_schema(schema) {
             Some(BasicSchemaStrategy::List(ListStrategy::new()))
+        } else if TupleStrategy::match_schema(schema) {
+            Some(BasicSchemaStrategy::Tuple(TupleStrategy::new()))
         } else if <NullStrategy as SchemaStrategy>::match_schema(schema) {
             Some(BasicSchemaStrategy::Null(NullStrategy::new()))
         } else if <BooleanStrategy as SchemaStrategy>::match_schema(schema) {
@@ -67,6 +72,7 @@ impl BasicSchemaStrategy {
         match self {
             BasicSchemaStrategy::Object(strategy) => strategy.to_schema(),
             BasicSchemaStrategy::List(strategy) => ListSchemaStrategy::to_schema(strategy),
+            BasicSchemaStrategy::Tuple(strategy) => ListSchemaStrategy::to_schema(strategy),
             BasicSchemaStrategy::Null(strategy) => ScalarSchemaStrategy::to_schema(strategy),
             BasicSchemaStrategy::Boolean(strategy) => ScalarSchemaStrategy::to_schema(strategy),
             BasicSchemaStrategy::Number(strategy) => ScalarSchemaStrategy::to_schema(strategy),
@@ -79,6 +85,7 @@ impl BasicSchemaStrategy {
         match self {
             BasicSchemaStrategy::Object(_) => ObjectStrategy::match_object(object),
             BasicSchemaStrategy::List(_) => <ListStrategy as ListSchemaStrategy>::match_object(object),
+            BasicSchemaStrategy::Tuple(_) => <TupleStrategy as ListSchemaStrategy>::match_object(object),
             BasicSchemaStrategy::Null(_) => <NullStrategy as SchemaStrategy>::match_object(object),
             BasicSchemaStrategy::Boolean(_) => <BooleanStrategy as SchemaStrategy>::match_object(object),
             BasicSchemaStrategy::Number(_) => <NumberStrategy as SchemaStrategy>::match_object(object),
@@ -91,6 +98,7 @@ impl BasicSchemaStrategy {
         match self {
             BasicSchemaStrategy::Object(_) => ObjectStrategy::match_schema(schema),
             BasicSchemaStrategy::List(_) => ListStrategy::match_schema(schema),
+            BasicSchemaStrategy::Tuple(_) => TupleStrategy::match_schema(schema),
             BasicSchemaStrategy::Null(_) => <NullStrategy as SchemaStrategy>::match_schema(schema),
             BasicSchemaStrategy::Boolean(_) => <BooleanStrategy as SchemaStrategy>::match_schema(schema),
             BasicSchemaStrategy::Number(_) => <NumberStrategy as SchemaStrategy>::match_schema(schema),
@@ -103,6 +111,7 @@ impl BasicSchemaStrategy {
         match self {
             BasicSchemaStrategy::Object(strategy) => strategy.add_schema(schema),
             BasicSchemaStrategy::List(strategy) => strategy.add_schema(schema),
+            BasicSchemaStrategy::Tuple(strategy) => strategy.add_schema(schema),
             BasicSchemaStrategy::Null(strategy) => strategy.add_schema(schema),
             BasicSchemaStrategy::Boolean(strategy) => strategy.add_schema(schema),
             BasicSchemaStrategy::Number(strategy) => strategy.add_schema(schema),
@@ -115,6 +124,7 @@ impl BasicSchemaStrategy {
         match self {
             BasicSchemaStrategy::Object(strategy) => strategy.add_object(object),
             BasicSchemaStrategy::List(strategy) => strategy.add_object(object),
+            BasicSchemaStrategy::Tuple(strategy) => strategy.add_object(object),
             BasicSchemaStrategy::Null(strategy) => strategy.add_object(object),
             BasicSchemaStrategy::Boolean(strategy) => strategy.add_object(object),
             BasicSchemaStrategy::Number(strategy) => strategy.add_object(object),

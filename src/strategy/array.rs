@@ -113,11 +113,85 @@ impl ListSchemaStrategy for ListStrategy {
     }
 }
 
-// TODO: implement tuple strategy
 /// strategy for tuple-style array schemas. Tuple-style arrays are arrays
 /// where each item can have a different schema. The "items" keyword is an
 /// array of schemas, one for each item in the tuple.
-pub struct _TupleStrategy {
+#[derive(Debug)]
+pub struct TupleStrategy {
     extra_keywords: Value,
     items: Vec<SchemaNode>,
+}
+
+impl TupleStrategy {
+    pub fn new() -> Self {
+        TupleStrategy {
+            extra_keywords: json!({}),
+            items: vec![SchemaNode::new()],
+        }
+    }
+
+    fn add_items<Adder>(&mut self, items: &Vec<Value>, node_adder: Adder) 
+    where Adder: Fn(&mut SchemaNode, &Value)
+    {
+        while self.items.len() < items.len() {
+            self.items.push(SchemaNode::new());
+        }
+        for (idx, item) in items.iter().enumerate() {
+            node_adder(&mut self.items[idx], item);
+        }
+    }
+}
+
+impl SchemaStrategy for TupleStrategy {
+    fn get_extra_keywords_mut(&mut self) -> &mut Value {
+        &mut self.extra_keywords
+    }
+
+    fn get_extra_keywords(&self) -> &Value {
+        &self.extra_keywords
+    }
+
+    fn match_schema(schema: &Value) -> bool {
+        schema["type"] == "array" && schema["items"].is_array()
+    }
+
+    fn match_object(object: &Value) -> bool {
+        <Self as ListSchemaStrategy>::match_object(object)
+    }
+
+    fn add_object(&mut self, object: &Value) {
+        if let Value::Array(objects) = object {
+            self.add_items(objects, |node, obj| {
+                node.add_object(DataType::Object(obj));
+            });
+        }
+    }
+
+    fn add_schema(&mut self, schema: &Value) {
+        self.add_extra_keywords(schema);
+        if schema.is_object() && schema["items"].is_array() {
+            let items = schema["items"].as_array().unwrap();
+            self.add_items(items, |node, item| {
+                node.add_schema(DataType::Schema(item));
+            });
+        }
+    }
+}
+
+impl ListSchemaStrategy for TupleStrategy {
+    fn get_items_mut(&mut self) -> IterMut<SchemaNode> {
+        self.items.iter_mut()
+    }
+
+    fn get_items(&self) -> Iter<SchemaNode> {
+        self.items.iter()
+    }
+
+    fn items_to_schema(&self) -> Value {
+        Value::Array(
+            self.items.iter()
+                .map(|node| node.to_schema())
+                .collect()
+        )
+    }
 }
