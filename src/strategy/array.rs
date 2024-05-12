@@ -5,6 +5,11 @@ use rayon::prelude::*;
 use crate::strategy::base::SchemaStrategy;
 use crate::node::{SchemaNode, DataType};
 
+// The number of objects overwhich parallel processing is more efficient
+// than serial processing. This is a heuristic value and may not always work
+// for all cases.
+const PARALLEL_PROCESSING_BOUNDARY: usize = 10;
+
 pub trait ListSchemaStrategy: SchemaStrategy {
     fn get_items_mut(&mut self) -> IterMut<SchemaNode>;
     fn get_items(&self) -> Iter<SchemaNode>;
@@ -65,22 +70,32 @@ impl SchemaStrategy for ListStrategy {
             Value::Array(objects) => {
                 let items = self.get_items_mut();
                 items.for_each(|node| {
-                    // parallelize process of objects by splitting them into partitions
-                    // and processing each partition in parallel with their own schema node
-                    // and then merging the results
-                    let combined_node = objects.par_iter().fold(
-                        || SchemaNode::new(),
-                        |mut temp_node, obj| {
-                            temp_node.add_object(DataType::Object(obj));
-                            temp_node
-                        }
-                    ).reduce_with(
-                        |mut first_node, next_node| {
-                            first_node.add_schema(DataType::SchemaNode(&next_node));
-                            first_node
-                        } 
-                    ).unwrap_or(SchemaNode::new());
-                    node.add_schema(DataType::SchemaNode(&combined_node));
+                    // if the number of objects is less than 10, it is more efficient to
+                    // add them to the schema node directly without incurring the overhead 
+                    // of parallel processing
+                    if objects.len() < PARALLEL_PROCESSING_BOUNDARY {
+                        objects.iter().for_each(|obj| {
+                            node.add_object(DataType::Object(obj));
+                        });
+                    } else {
+                        // when the number of objects are large, it is more efficient to
+                        // parallelize process of objects by splitting them into partitions
+                        // and processing each partition in parallel with their own schema node
+                        // and then merging the results
+                        let combined_node = objects.par_iter().fold(
+                            || SchemaNode::new(),
+                            |mut temp_node, obj| {
+                                temp_node.add_object(DataType::Object(obj));
+                                temp_node
+                            }
+                        ).reduce_with(
+                            |mut first_node, next_node| {
+                                first_node.add_schema(DataType::SchemaNode(&next_node));
+                                first_node
+                            } 
+                        ).unwrap_or(SchemaNode::new());
+                        node.add_schema(DataType::SchemaNode(&combined_node));
+                    }
                 });
             },
             _ => ()
