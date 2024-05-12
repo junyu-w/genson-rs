@@ -76,7 +76,7 @@ impl SchemaStrategy for ListStrategy {
                         }
                     ).reduce_with(
                         |mut first_node, next_node| {
-                            first_node.add_schema(DataType::Schema(&next_node.to_schema()));
+                            first_node.add_schema(DataType::SchemaNode(&next_node));
                             first_node
                         } 
                     ).unwrap_or(SchemaNode::new());

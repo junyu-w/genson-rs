@@ -154,10 +154,11 @@ impl ScalarSchemaStrategy for NumberStrategy {
 
 impl SchemaStrategy for NumberStrategy {
     fn add_schema(&mut self, schema: &Value) {
+        self.add_extra_keywords(schema);
+        // "number" takes precedence over "integer" if both are present
         if schema["type"] == "number" {
             self.number_type = "number";
         }
-        self.add_extra_keywords(schema)
     }
 
     fn add_object(&mut self, object: &Value) {

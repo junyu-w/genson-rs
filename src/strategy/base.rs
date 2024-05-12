@@ -24,15 +24,9 @@ pub trait SchemaStrategy {
                     Value::Object(keywords) => {
                         if key == "type" {
                             return;
-            
-                        } else if let None = keywords.get(key) {
+                        } else if !keywords.contains_key(key) {
+                            // add the property from the input schema if it doesn't already exist
                             keywords.insert(key.to_string(), value.clone());
-            
-                        } else if let Some(current_value) = keywords.get(key) {
-                            if current_value != value {
-                                eprintln!("Warning: Schema incompatible. Keyword {key} has conflicting \
-                                    values {current_value} and {value}. Using {current_value}.")
-                            }
                         }
                     },
                     _ => ()

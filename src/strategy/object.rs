@@ -84,6 +84,8 @@ impl SchemaStrategy for ObjectStrategy {
         if let Value::Object(schema_object) = schema {
             self.add_extra_keywords(schema);
 
+            // properties updater updates the internal properties and pattern_properties with the schema_object,
+            // creating schema node as needed for each property
             let properties_updater = 
                     |properties: &mut HashMap<String, SchemaNode>, schema_object: &Map<String, Value>, prop_key: &str| {
                 if let Some(schema_properties) = schema_object[prop_key].as_object() {

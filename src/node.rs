@@ -35,6 +35,7 @@ impl SchemaNode {
     pub fn add_schema(&mut self, data: DataType) -> &mut Self {
         let schema = match data {
             DataType::SchemaNode(node) => node.to_schema(),
+            // TODO: this clone here seems unnecessary, figure out a way to avoid it
             DataType::Schema(schema) => schema.clone(),
             _ => panic!("Invalid schema type")
         };
@@ -106,9 +107,6 @@ impl SchemaNode {
                 generated_schemas.push(json!({"type": scalar_type_list}));
             }
         }
-        // println!("==schema_node: {:?}", self);
-        // println!("==generated_schemas: {:?}", generated_schemas);
-        // println!("==scalar_types: {:?}\n", scalar_types);
 
         if generated_schemas.len() == 1 {
             return generated_schemas[0].clone();
