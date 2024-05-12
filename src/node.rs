@@ -35,7 +35,6 @@ impl SchemaNode {
     pub fn add_schema(&mut self, data: DataType) -> &mut Self {
         let schema = match data {
             DataType::SchemaNode(node) => node.to_schema(),
-            // TODO: this clone here seems unnecessary, figure out a way to avoid it
             DataType::Schema(schema) => schema.clone(),
             _ => panic!("Invalid schema type")
         };
