@@ -1,8 +1,12 @@
 use std::process;
+use std::time::Instant;
 
-use serde_json::Value;
 use clap::Parser;
-use genson_rs::get_builder;
+use genson_rs::*;
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 
 #[derive(Parser)]
@@ -29,10 +33,14 @@ fn main() {
     let mut builder = get_builder(Some("AUTO"));
 
     if let Some(json_file) = cli.json_file.as_deref() {
-        let object_str = std::fs::read_to_string(json_file).unwrap();
-        let object: Value = serde_json::from_str(&object_str).unwrap();
+        let now = Instant::now();
+        let object = parse_json_object(json_file);
+        println!("JSON Parsing took {} mili.", now.elapsed().as_millis());
 
+        let now = Instant::now();
         builder.add_object(&object);
+        println!("Schema building took {} mili.", now.elapsed().as_millis());
+
         println!("{}", builder.to_json());
         // NOTE: early exit here to avoid dropping of the `object` variable
         //  which takes about 15~35% of the total runtime (depending on the size of the object)

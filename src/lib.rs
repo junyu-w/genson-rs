@@ -3,19 +3,14 @@ mod strategy;
 mod builder;
 
 pub use builder::SchemaBuilder;
+use serde_json::Value;
 
 pub fn get_builder(schema_uri: Option<&str>) -> SchemaBuilder {
     SchemaBuilder::new(schema_uri)
 }
 
-pub fn add_schema_file(builder: &mut SchemaBuilder, file: &str) {
-    let schema = std::fs::read_to_string(file).unwrap();
-    let schema: serde_json::Value = serde_json::from_str(&schema).unwrap();
-    builder.add_schema(schema);
-}
-
-pub fn add_object_file(builder: &mut SchemaBuilder, file: &str) {
-    let object_str = std::fs::read_to_string(file).unwrap();
-    let object: serde_json::Value = serde_json::from_str(&object_str).unwrap();
-    builder.add_object(&object);
+pub fn parse_json_object(json_file: &str) -> Value {
+    let object_str = std::fs::read_to_string(json_file).unwrap();
+    let object: Value = serde_json::from_str(&object_str).unwrap();
+    return object;
 }
