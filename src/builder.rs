@@ -1,4 +1,5 @@
 use serde_json::{Value, json};
+use simd_json;
 
 use crate::node::{DataType, SchemaNode};
 
@@ -51,7 +52,7 @@ impl SchemaBuilder {
     }
 
     /// Modify the schema to accomodate the input object
-    pub fn add_object(&mut self, object: &Value) {
+    pub fn add_object(&mut self, object: &simd_json::BorrowedValue) {
         self.root_node.add_object(DataType::Object(object));
     }
 

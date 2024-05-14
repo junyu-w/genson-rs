@@ -1,6 +1,8 @@
-use core::slice::{IterMut, Iter};
+use std::slice::{IterMut, Iter};
 use serde_json::{Value, json};
+use simd_json;
 use rayon::prelude::*;
+use simd_json::prelude::TypedContainerValue;
 
 use crate::strategy::base::SchemaStrategy;
 use crate::node::{SchemaNode, DataType};
@@ -24,7 +26,7 @@ pub trait ListSchemaStrategy: SchemaStrategy {
         schema
     }
 
-    fn match_object(object: &Value) -> bool {
+    fn match_object(object: &simd_json::BorrowedValue) -> bool {
         object.is_array()
     }
 }
@@ -61,13 +63,14 @@ impl SchemaStrategy for ListStrategy {
         schema["type"] == "array" && schema["items"].is_object()
     }
 
-    fn match_object(object: &Value) -> bool {
+    fn match_object(object: &simd_json::BorrowedValue) -> bool {
         <Self as ListSchemaStrategy>::match_object(object)
     }
 
-    fn add_object(&mut self, object: &Value) {
+    fn add_object(&mut self, object: &simd_json::BorrowedValue) {
+        
         match object {
-            Value::Array(objects) => {
+            simd_json::BorrowedValue::Array(objects) => {
                 let items = self.get_items_mut();
                 items.for_each(|node| {
                     // if the number of objects is less than 10, it is more efficient to
@@ -145,14 +148,14 @@ impl TupleStrategy {
         }
     }
 
-    fn add_items<Adder>(&mut self, items: &Vec<Value>, node_adder: Adder) 
-    where Adder: Fn(&mut SchemaNode, &Value)
+    fn add_items<Adder>(&mut self, items: Vec<DataType>, node_adder: Adder) 
+    where Adder: Fn(&mut SchemaNode, DataType)
     {
         while self.items.len() < items.len() {
             self.items.push(SchemaNode::new());
         }
         for (idx, item) in items.iter().enumerate() {
-            node_adder(&mut self.items[idx], item);
+            node_adder(&mut self.items[idx], item.clone());
         }
     }
 }
@@ -170,14 +173,15 @@ impl SchemaStrategy for TupleStrategy {
         schema["type"] == "array" && schema["items"].is_array()
     }
 
-    fn match_object(object: &Value) -> bool {
+    fn match_object(object: &simd_json::BorrowedValue) -> bool {
         <Self as ListSchemaStrategy>::match_object(object)
     }
 
-    fn add_object(&mut self, object: &Value) {
-        if let Value::Array(objects) = object {
-            self.add_items(objects, |node, obj| {
-                node.add_object(DataType::Object(obj));
+    fn add_object(&mut self, object: &simd_json::BorrowedValue) {
+        if let simd_json::BorrowedValue::Array(objects) = object {
+            let items: Vec<DataType> = objects.iter().map(|obj| DataType::Object(obj)).collect();
+            self.add_items(items, |node, obj| {
+                node.add_object(obj);
             });
         }
     }
@@ -185,9 +189,10 @@ impl SchemaStrategy for TupleStrategy {
     fn add_schema(&mut self, schema: &Value) {
         self.add_extra_keywords(schema);
         if schema.is_object() && schema["items"].is_array() {
-            let items = schema["items"].as_array().unwrap();
-            self.add_items(items, |node, item| {
-                node.add_schema(DataType::Schema(item));
+            let items: Vec<DataType> = schema["items"].as_array().unwrap()
+                .iter().map(|s| DataType::Schema(s)).collect();
+            self.add_items(items, |node, sch| {
+                node.add_schema(sch);
             });
         }
     }

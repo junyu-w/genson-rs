@@ -2,6 +2,7 @@ use core::panic;
 use std::collections::HashSet;
 
 use serde_json::{json, Value};
+use simd_json;
 use crate::strategy::BasicSchemaStrategy;
 use crate::strategy::base::SchemaStrategy;
 use crate::strategy::scalar::TypelessStrategy;
@@ -16,11 +17,12 @@ pub struct SchemaNode {
 /// DataType wraps around different types of schema data that can be added
 /// to a SchemaNode. It wraps references to Value objects and SchemaNode
 /// objects so when it gets dropped the underlying data is not dropped.
+#[derive(Clone)]
 pub enum DataType<'a> {
     /// SchemaNode represents a JSON schema
     Schema(&'a Value),
     /// Object represents a valid JSON object (array, object, string, number, boolean, null)
-    Object(&'a Value),
+    Object(&'a simd_json::BorrowedValue<'a>),
     /// SchemaNode reference
     SchemaNode(&'a SchemaNode),
 }
@@ -117,7 +119,7 @@ impl SchemaNode {
     }
 
     /// Get the current active strategy for the object, if not found create a new one.
-    fn get_or_create_strategy_for_object(&mut self, object: &Value) -> &mut BasicSchemaStrategy {
+    fn get_or_create_strategy_for_object(&mut self, object: &simd_json::BorrowedValue) -> &mut BasicSchemaStrategy {
         if let Some(idx) = self.get_strategy_for_kind(DataType::Object(object)) {
             return &mut self.active_strategies[idx];
         }

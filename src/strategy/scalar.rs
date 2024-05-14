@@ -1,4 +1,6 @@
 use serde_json::{Value, json};
+use simd_json;
+use simd_json::prelude::TypedScalarValue;
 
 use crate::strategy::base::{SchemaStrategy, ScalarSchemaStrategy};
 
@@ -34,11 +36,11 @@ impl SchemaStrategy for NullStrategy {
         schema["type"] == "null"
     }
 
-    fn match_object(object: &Value) -> bool {
+    fn match_object(object: &simd_json::BorrowedValue) -> bool {
         object.is_null()
     }
 
-    fn add_object(&mut self, _object: &Value) {
+    fn add_object(&mut self, _object: &simd_json::BorrowedValue) {
         ()
     }
 }
@@ -75,11 +77,11 @@ impl SchemaStrategy for BooleanStrategy {
         schema["type"] == "boolean"
     }
 
-    fn match_object(object: &Value) -> bool {
-        object.is_boolean()
+    fn match_object(object: &simd_json::BorrowedValue) -> bool {
+        object.is_bool()
     }
 
-    fn add_object(&mut self, _object: &Value) {
+    fn add_object(&mut self, _object: &simd_json::BorrowedValue) {
         ()
     }
 }
@@ -110,11 +112,11 @@ impl SchemaStrategy for StringStrategy {
         schema["type"] == "string"
     }
 
-    fn match_object(object: &Value) -> bool {
-        object.is_string()
+    fn match_object(object: &simd_json::BorrowedValue) -> bool {
+        object.is_str()
     }
 
-    fn add_object(&mut self, _object: &Value) {
+    fn add_object(&mut self, _object: &simd_json::BorrowedValue) {
         ()
     }
 }
@@ -161,7 +163,7 @@ impl SchemaStrategy for NumberStrategy {
         }
     }
 
-    fn add_object(&mut self, object: &Value) {
+    fn add_object(&mut self, object: &simd_json::BorrowedValue) {
         if object.is_f64() {
             self.number_type = "number";
         }
@@ -179,7 +181,7 @@ impl SchemaStrategy for NumberStrategy {
         schema["type"] == "number" || schema["type"] == "integer"
     }
 
-    fn match_object(object: &Value) -> bool {
+    fn match_object(object: &simd_json::BorrowedValue) -> bool {
         object.is_number()
     }
 }
@@ -216,11 +218,11 @@ impl SchemaStrategy for TypelessStrategy {
         return true;
     }
 
-    fn match_object(_: &Value) -> bool {
+    fn match_object(_: &simd_json::BorrowedValue) -> bool {
         false
     }
 
-    fn add_object(&mut self, _object: &Value) {
+    fn add_object(&mut self, _object: &simd_json::BorrowedValue) {
         ()
     }
 }

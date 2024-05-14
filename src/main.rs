@@ -2,6 +2,7 @@ use std::process;
 use std::time::Instant;
 
 use clap::{ArgAction, CommandFactory, Parser};
+use simd_json;
 use genson_rs::*;
 use mimalloc::MiMalloc;
 
@@ -29,14 +30,19 @@ fn main() {
     if let Some(json_file) = cli.json_file.as_deref() {
         let now = Instant::now();
 
-        let object = parse_json_object(json_file);
-        let json_parsing_duration_ms = now.elapsed().as_millis();
+        // let object = parse_json_object(json_file);
+        let mut object_slice = std::fs::read(json_file).unwrap();
+        let file_reading_duration_ms = now.elapsed().as_millis();
+
+        let object = simd_json::to_borrowed_value(&mut object_slice).unwrap();
+        let json_parsing_duration_ms = now.elapsed().as_millis() - file_reading_duration_ms;
 
         builder.add_object(&object);
         let total_duration_ms = now.elapsed().as_millis();
         let schema_building_duration_ms = total_duration_ms - json_parsing_duration_ms;
 
         if cli.verbose.unwrap_or(false) {
+            dbg!(file_reading_duration_ms);
             dbg!(json_parsing_duration_ms);
             dbg!(schema_building_duration_ms);
             dbg!(total_duration_ms);

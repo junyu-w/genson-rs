@@ -28,7 +28,7 @@ pub enum BasicSchemaStrategy {
 
 impl BasicSchemaStrategy {
 
-    pub fn new_for_object(object: &Value) -> Option<Self> {
+    pub fn new_for_object(object: &simd_json::BorrowedValue) -> Option<Self> {
         if ObjectStrategy::match_object(object) {
             Some(BasicSchemaStrategy::Object(ObjectStrategy::new()))
         } else if <ListStrategy as ListSchemaStrategy>::match_object(object) {
@@ -81,7 +81,7 @@ impl BasicSchemaStrategy {
         }
     }
 
-    pub fn match_object(&self, object: &Value) -> bool {
+    pub fn match_object(&self, object: &simd_json::BorrowedValue) -> bool {
         match self {
             BasicSchemaStrategy::Object(_) => ObjectStrategy::match_object(object),
             BasicSchemaStrategy::List(_) => <ListStrategy as ListSchemaStrategy>::match_object(object),
@@ -120,7 +120,7 @@ impl BasicSchemaStrategy {
         }
     }
 
-    pub fn add_object(&mut self, object: &Value) {
+    pub fn add_object(&mut self, object: &simd_json::BorrowedValue) {
         match self {
             BasicSchemaStrategy::Object(strategy) => strategy.add_object(object),
             BasicSchemaStrategy::List(strategy) => strategy.add_object(object),

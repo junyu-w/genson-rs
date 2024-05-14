@@ -3,6 +3,8 @@ use std::collections::hash_set::HashSet;
 use regex::Regex;
 
 use serde_json::{Value, json, Map};
+use simd_json;
+use simd_json::prelude::TypedContainerValue;
 
 use crate::node::{SchemaNode, DataType};
 use crate::strategy::base::SchemaStrategy;
@@ -42,16 +44,16 @@ impl SchemaStrategy for ObjectStrategy {
         schema["type"] == "object"
     }
 
-    fn match_object(object: &Value) -> bool {
+    fn match_object(object: &simd_json::BorrowedValue) -> bool {
         object.is_object()
     }
 
-    fn add_object(&mut self, object: &Value) {
+    fn add_object(&mut self, object: &simd_json::BorrowedValue) {
         let mut properties = HashSet::new();
-        if let Value::Object(object) = object {
+        if let simd_json::BorrowedValue::Object(object) = object {
             object.iter().for_each(|(prop, subobj)| {
                 let mut pattern: Option<&str> = None;
-                if !self.properties.contains_key(prop) {
+                if !self.properties.contains_key(prop.as_ref()) {
                     let pattern_matcher = |p: &str| Regex::new(p).unwrap().is_match(prop);
                     self.pattern_properties
                         .iter_mut()
@@ -64,10 +66,10 @@ impl SchemaStrategy for ObjectStrategy {
 
                 if pattern.is_none() {
                     properties.insert(prop.to_string());
-                    if !self.properties.contains_key(prop) {
+                    if !self.properties.contains_key(prop.as_ref()) {
                         self.properties.insert(prop.to_string(), SchemaNode::new());
                     }
-                    self.properties.get_mut(prop).unwrap().add_object(DataType::Object(subobj));
+                    self.properties.get_mut(prop.as_ref()).unwrap().add_object(DataType::Object(subobj));
                 }
             });
         }
