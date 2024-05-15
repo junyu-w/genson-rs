@@ -1,14 +1,15 @@
 """
-This script generates a JSON file with a size of 50MB, 500MB and 3GB.
+This script generates a JSON file with a size of 50MB, 500MB, 1GB and 3GB.
 """
 import json
 
 three_gb_json_count = 10000000
 five_hundred_mb_json_count = three_gb_json_count // 6
 fifty_mb_json_count = three_gb_json_count // 60
+one_gb_json_count = five_hundred_mb_json_count * 2
 
 data = []
-for i in range(five_hundred_mb_json_count):
+for i in range(one_gb_json_count):
     charge = {
         "status": "success",
         "data": {
@@ -48,7 +49,7 @@ for i in range(five_hundred_mb_json_count):
     data.append(charge)
 
 # Write the JSON data to a file
-with open("test_medium_500mb_full_json_array.json", "w") as file:
+with open("test_large_1gb_full_json_array.json", "w") as file:
     # json_text = "\n".join([json.dumps(charge) for charge in data])
     # file.write(json_text)
     json.dump(data, file)
