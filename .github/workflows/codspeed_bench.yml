@@ -1,4 +1,4 @@
-name: codspeed-benchmarks
+name: codspeed benchmarks
 
 on:
   push:
@@ -28,4 +28,5 @@ jobs:
       - name: Run the benchmarks
         uses: CodSpeedHQ/action@v2
         with:
+          token: ${{ secrets.CODSPEED_TOKEN }}
           run: cargo codspeed run
