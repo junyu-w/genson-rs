@@ -32,4 +32,5 @@ pub fn parse_json_schema(builder: &mut SchemaBuilder, object_slice: &mut Vec<u8>
         eprintln!("JSON parsing duration: {}ms", json_parsing_duration_ms);
         eprintln!("Schema parsing duration: {}ms", schema_parsing_duration);
     }
+    std::mem::forget(object);
 }
