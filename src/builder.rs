@@ -35,15 +35,15 @@ impl SchemaBuilder {
 
     /// Merge in raw JSON schema object
     pub fn add_schema(&mut self, mut schema: Value) {
-        // TODO: support passing in another schema builder object
         if let Value::Object(ref mut schema_obj) = schema {
             if schema_obj.contains_key("$schema") && self.schema_uri.is_none() {
                 self.schema_uri = Some(schema_obj["$schema"].to_string());
                 schema_obj.remove("$schema");
             }
             self.root_node.add_schema(DataType::Schema(&schema));
+        } else {
+            panic!("Invalid schema type - must be a valid JSON object")
         }
-        panic!("Invalid schema type - must be a valid JSON object")
     }
 
     /// Merge in another SchemaNode object
