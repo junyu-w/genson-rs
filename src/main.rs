@@ -19,7 +19,7 @@ struct Cli {
     /// specify a delimiter if your input is multiple JSON objects concatenated together 
     /// (e.g. each object on a newline).
     /// NOTE: If not specified, the input is assumed to be a single JSON object, and the parsing
-    /// process will be slower if e.g. the input is a large JSON array.
+    /// process will be slower if the input is a large JSON array.
     delimiter: Option<String>,
 
     /// The JSON file path to read the JSON objects from
@@ -56,12 +56,7 @@ fn main() {
         if cli.verbose.unwrap_or(false) {
             eprintln!("File reading duration: {}ms", now.elapsed().as_millis());
         }
-
-        if let Some(delimiter) = delimiter {
-            build_multi_json_objects_schema(&mut builder, &mut object_slice, delimiter);
-        } else {
-            build_single_json_object_schema(&mut builder, &mut object_slice, false);
-        }
+        build_json_schema(&mut builder, &mut object_slice, delimiter);
 
         println!("{}", builder.to_json());
         // NOTE: early exit here to avoid dropping of the `object` variable

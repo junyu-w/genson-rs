@@ -55,7 +55,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         {
             let mut builder = get_builder(None);
             let mut object_slice = test_json_tiny.as_bytes().to_vec();
-            build_single_json_object_schema(&mut builder,  &mut object_slice, false);
+            build_json_schema(&mut builder,  &mut object_slice, None);
             black_box(builder);
         }
     ));
@@ -65,7 +65,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         {
             let mut builder = get_builder(None);
             let mut object_slice = test_json_small.as_bytes().to_vec();
-            build_single_json_object_schema(&mut builder,  &mut object_slice, false);
+            build_json_schema(&mut builder,  &mut object_slice, None);
             black_box(builder);
         }
     ));
@@ -75,7 +75,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         {
             let mut builder = get_builder(None);
             let mut object_slice = test_json_medium.as_bytes().to_vec();
-            build_single_json_object_schema(&mut builder,  &mut object_slice, false);
+            build_json_schema(&mut builder,  &mut object_slice, None);
             black_box(builder);
         }
     ));
@@ -85,7 +85,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         {
             let mut builder = get_builder(None);
             let mut object_slice = test_json_large.as_bytes().to_vec();
-            build_single_json_object_schema(&mut builder,  &mut object_slice, false);
+            build_json_schema(&mut builder,  &mut object_slice, None);
             black_box(builder);
         }
     ));
@@ -95,7 +95,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         {
             let mut builder = get_builder(None);
             let mut object_slice = test_json_tiny.as_bytes().to_vec();
-            build_multi_json_objects_schema(&mut builder,  &mut object_slice, "\n".as_bytes()[0]);
+            build_json_schema(&mut builder,  &mut object_slice, Some("\n".as_bytes()[0]));
             black_box(builder);
         }
     ));
@@ -105,7 +105,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         {
             let mut builder = get_builder(None);
             let mut object_slice = test_json_small.as_bytes().to_vec();
-            build_multi_json_objects_schema(&mut builder,  &mut object_slice, "\n".as_bytes()[0]);
+            build_json_schema(&mut builder,  &mut object_slice, Some("\n".as_bytes()[0]));
             black_box(builder);
         }
     ));
@@ -115,7 +115,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         {
             let mut builder = get_builder(None);
             let mut object_slice = test_json_medium.as_bytes().to_vec();
-            build_multi_json_objects_schema(&mut builder,  &mut object_slice, "\n".as_bytes()[0]);
+            build_json_schema(&mut builder,  &mut object_slice, Some("\n".as_bytes()[0]));
             black_box(builder);
         }
     ));
@@ -125,7 +125,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         {
             let mut builder = get_builder(None);
             let mut object_slice = test_json_large.as_bytes().to_vec();
-            build_multi_json_objects_schema(&mut builder,  &mut object_slice, "\n".as_bytes()[0]);
+            build_json_schema(&mut builder,  &mut object_slice, Some("\n".as_bytes()[0]));
             black_box(builder);
         }
     ));
