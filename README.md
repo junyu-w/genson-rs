@@ -1,24 +1,60 @@
 # genson-rs
 
-*-- Generate JSON Schema from Gigabytes of JSON files in seconds*
+[![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/junyu-w/genson-rs)
 
-`genson-rs` is a port of the python [GenSON](https://github.com/wolverdude/genson/) library written in Rust, which can be used to generate JSON schema (Draft-04 and after) from one or multiple JSON objects.
+*-- 🔥 Generate JSON Schema from Gigabytes of JSON data in seconds*
 
-Instead of feature parity, `genson-rs` focuses on **speed and scale**, it aims to offer much better performance (10x) compared to the python version and thus supports schema generation from much larger JSON files. See the [benchmark](#benchmark) section for performance comparisons with the python `GenSON` library and other popular json schema generation tools.
+`genson-rs` is a Rust rewrite of the [GenSON](https://github.com/wolverdude/genson/) Python library , which can be used to generate [JSON schema](https://json-schema.org/) (Draft-04 and after) from one or multiple JSON objects.
 
-Note that `genson-rs` currently only supports schema generation from JSON objects, it is not the goal of the project at the moment to achieve feature parity with the `GenSON` library. I would recommend to check it out if you have more complex schema generation needs.
+While not having full feature parity yet, `genson-rs` focuses on **speed** ⚡️. It offers *MUCH* better performance (**25x ~ 75x faster**) compared to the Python `GenSON` library, and is generally much faster than other open source schema inference tools as well. Its high performance also makes it a viable choice for online schema inference for large JSON dataset at scale. Check out the [benchmark](#benchmark) section for performance benchmark comparisons.
+
+## Install
+```
+cargo install genson-rs
+```
+or
+```
+brew install XXX
+```
+
+## Usage
+```
+genson-rs <OPTION> <FILE>
+```
+
+e.g. If you have a large JSON file full of request logs in JSON format
+```
+genson-rs request_logs.json
+```
+
+Additionally, if each request log is a JSON object in its own line, you can specify the delimiter which will slightly improve the performance
+```
+genson-rs --delimiter newline request_logs.json 
+```
 
 ## Benchmark
 
-The following benchmarks are executed manually on an EC2 instance with : <TBD - spec>
+The following benchmarks are executed manually on my *Macbook Pro with the M2 Pro Chip (10 cores, 4 high-efficiency + 6 high-performance) and 16GB of memory, running macOS 13.0*. Each of the test JSON file is generated using the `json_gen.py` script inside of the `tests/data` folder, and each test was executed 3 times and I took the median of the 3 runs.
 
-TBD - table here
+| Library         | File Size               | Time               |
+|-----------------|-------------------------|--------------------|
+| GenSON (Python) | 50 MB                   | 1.61s              |
+| genson-rs       | 50 MB                   | 🔥 **0.07s**       |
+| GenSON (Python) | 500 MB                  | 16.07s             |
+| genson-rs       | 500 MB                  | 🔥 **0.61s**       |
+| GenSON (Python) | 1 GB                    | 34.21s             |
+| genson-rs       | 1 GB                    | 🔥 **1.19s**       |
+| GenSON (Python) | 3 GB                    | 107.86s (1min 47s) |
+| genson-rs       | 3 GB                    | 🔥 **4.56s**       |
+| GenSON (Python) | 3 GB (Large JSON Array) | 443.83s (7min 23s) |
+| genson-rs       | 3 GB (Large JSON Array) | 🔥 **7.06s**       |
 
-## Optimization Techniques
+As you can see, `genson-rs` is *extremely* fast, and might be the fastest schema inference engine out there based on my rudimentary benchmarks against other tools (that I'm aware of).
 
-The `genson-rs` library leverages the following techniques to greatly speed up the schema generation process compared to the python version:
-- **Rust being blazingly fast itself** -- without any GC and interpreter overhead, a 1-to-1 port in Rust running on a single CPU core runs 2x faster than the Python version already
-- **True parallelism on multi-core CPU** -- whie Python has the limitation of the GIL that prevents it from leveraging multiple CPU cores efficiently, the Rust code processes large map-reduce type of workload (e.g. when processing gigantic arrays) in parallel on all the available CPU cores to greatly speed up the schema building time
-- **Extremely fast JSON parsing built upon SIMD instructions** -- instead of fully parsing out the whole JSON structure, the Rust code uses the `simd-json` library (a Rust port of the C++ `simdjson` library) that leverages the SIMD (Single Instruction/Multiple Data) instructions and a two-pass algorithm to parse out the "tape" of the JSON dataset, which is sufficient enough to build the schema on top without fully deserializing the whole dataset
-- **Efficient memory management using the MiMalloc allocator** -- this is recommended by the `simd-json` library itself, the Rust code opts to use the `MiMalloc` allocator instead of the default global allocator which made the code run faster by a decent amount
+## Optimization Techniques 
 
+The `genson-rs` library leverages the following techniques to greatly speed up the schema generation process:
+- ⚡️ **Rust being blazingly fast itself** -- without any GC or interpreter overhead, a 1-to-1 port in Rust running on a single CPU core runs 2x faster than the Python version already
+- ⚡️ **Parallel processing leveraging all available CPU cores** -- whie Python has the limitation of the GIL that prevents it from leveraging multiple CPU cores efficiently, `genson-rs` parallelizes [Map-Reduce](https://en.wikipedia.org/wiki/MapReduce) type of workload whenever possible (e.g. when processing gigantic arrays), maxing out all the available CPU cores
+- ⚡️ **Extremely fast JSON parsing powered by SIMD instructions** -- instead of fully parsing out the whole JSON dataset, we use the `simd-json` library (a Rust port of the C++ `simdjson` library) that leverages SIMD (Single Instruction/Multiple Data) instructions to only parse out the "tape" of the JSON dataset, which is sufficient enough to build the schema on top of without fully deserializing the whole dataset
+- ⚡️ **Efficient memory management using the MiMalloc allocator** -- this is recommended by the `simd-json` library itself, `genson-rs` opts to use the `MiMalloc` allocator instead of the default global allocator which made the code run faster by a decent amount
