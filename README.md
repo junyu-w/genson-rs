@@ -6,7 +6,7 @@
 
 `genson-rs` is a Rust rewrite of the [GenSON](https://github.com/wolverdude/genson/) Python library , which can be used to generate [JSON schema](https://json-schema.org/) (Draft-04 and after) from one or multiple JSON objects.
 
-While not having full feature parity yet, `genson-rs` focuses on **speed** ⚡️. It offers *MUCH* better performance (**25x ~ 75x faster**) compared to the Python `GenSON` library, and is generally much faster than other open source schema inference tools as well. Its high performance also makes it a viable choice for online schema inference for large JSON dataset at scale. Check out the [benchmark](#benchmark) section for performance benchmark comparisons.
+While not having full feature parity yet, `genson-rs` focuses on **speed** ⚡️. It offers MUCH better performance (**25x ~ 75x faster**) compared to the Python `GenSON` library, and is generally a lot faster than other open source schema inference tools as well. Its high performance makes it a viable choice for online schema inference for large JSON dataset at scale. Check out the [benchmark](#benchmark) section for performance benchmark comparisons.
 
 ## Install
 ```
@@ -34,7 +34,7 @@ genson-rs --delimiter newline request_logs.json
 
 ## Benchmark
 
-The following benchmarks are executed manually on my *Macbook Pro with the M2 Pro Chip (10 cores, 4 high-efficiency + 6 high-performance) and 16GB of memory, running macOS 13.0*. Each of the test JSON file is generated using the `json_gen.py` script inside of the `tests/data` folder, and each test was executed 3 times and I took the median of the 3 runs.
+The following benchmarks are executed manually on my local `2023 Macbook Pro with the M2 Pro Chip (10 cores, 4 high-efficiency + 6 high-performance), 16GB RAM, running macOS 13.0`. Each of the test JSON files is generated using the `json_gen.py` script inside of the `tests/data` folder, and each test was executed 3 times. The median was used out of the 3 runs.
 
 | Library         | File Size               | Time               |
 |-----------------|-------------------------|--------------------|
@@ -49,7 +49,7 @@ The following benchmarks are executed manually on my *Macbook Pro with the M2 Pr
 | GenSON (Python) | 3 GB (Large JSON Array) | 443.83s (7min 23s) |
 | genson-rs       | 3 GB (Large JSON Array) | 🔥 **7.06s**       |
 
-As you can see, `genson-rs` is *extremely* fast, and might be the fastest schema inference engine out there based on my rudimentary benchmarks against other tools (that I'm aware of).
+As you can see, `genson-rs` is *extremely* fast, and might be the fastest schema inference engine out there based on my rudimentary benchmarks against other tools (that I'm aware of) as well.
 
 ## Optimization Techniques 
 
