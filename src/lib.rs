@@ -4,6 +4,7 @@ mod builder;
 
 use rayon::prelude::*;
 use mimalloc::MiMalloc;
+use serde_json::json;
 
 // Setting the global allocator to mimalloc for more efficient memory allocation
 #[global_allocator]
@@ -13,6 +14,16 @@ pub use builder::SchemaBuilder;
 
 pub fn get_builder(schema_uri: Option<&str>) -> SchemaBuilder {
     SchemaBuilder::new(schema_uri)
+}
+
+type Schema = serde_json::Value;
+
+/// Configuration for building a JSON schema
+pub struct BuildConfig {
+    /// The delimiter to split the JSON objects in the data
+    pub delimiter: Option<u8>,
+    /// If the outermost array should be ignored if the data is a JSON array of JSON objects
+    pub ignore_outer_array: bool,
 }
 
 /// Parse a single JSON object and add it to the schema builder
@@ -28,20 +39,36 @@ pub fn build_single_json_object_schema(builder: &mut SchemaBuilder, object_slice
 /// for large JSON object files (either multiple JSON objects concatenated together or a large JSON array).
 /// * `builder` - the schema builder object
 /// * `json_slice` - the JSON object or array of JSON objects to parse
-/// * `delimiter` - the delimiter to split the JSON objects
-pub fn build_json_schema(builder: &mut SchemaBuilder, json_slice: &mut Vec<u8>, delimiter: Option<u8>) {
+/// * `config` - the build configuration
+pub fn build_json_schema(builder: &mut SchemaBuilder, json_slice: &mut Vec<u8>, config: &BuildConfig) -> Schema {
     let json_slice = trim_to_object(json_slice);
     if is_json_object_array(json_slice) {
         let array_elements = get_json_array_elements(json_slice);
         build_multi_json_objects_schema(builder, array_elements, None);
-        // TODO: add the outer array schema back
+
+        if config.ignore_outer_array {
+            return builder.to_schema();
+        } else {
+            let mut inner_schema = builder.to_schema();
+            let schema_uri = inner_schema.as_object_mut().unwrap().remove("$schema");
+            if let Some(schema_uri) = schema_uri {
+                return json!({"$schema": schema_uri, "type": "array", "items": inner_schema});
+            } else {
+                return json!({"type": "array", "items": inner_schema});
+            }
+        }
     } else {
-        build_multi_json_objects_schema(builder, json_slice, delimiter);
+        build_multi_json_objects_schema(builder, json_slice, config.delimiter);
+        return builder.to_schema();
     }
 }
 
 /// Build a JSON schema from multiple JSON objects
-fn build_multi_json_objects_schema(builder: &mut SchemaBuilder, json_slice: &mut [u8], delimiter: Option<u8>) {
+fn build_multi_json_objects_schema(
+    builder: &mut SchemaBuilder,
+    json_slice: &mut [u8], 
+    delimiter: Option<u8>,
+) {
     if let Some(delimiter) = delimiter {
         let object_iter = json_slice.par_split_mut(|byte| *byte == delimiter);
         add_schema_from_object_par_iter(object_iter, builder);

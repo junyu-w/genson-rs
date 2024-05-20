@@ -15,7 +15,7 @@ pub struct ObjectStrategy {
     extra_keywords: Value,
     properties: HashMap<String, SchemaNode>,
     pattern_properties: HashMap<String, SchemaNode>,
-    required_properties: HashSet<String>,
+    required_properties: Option<HashSet<String>>,
     include_empty_required: bool,
 }
 
@@ -25,7 +25,7 @@ impl ObjectStrategy {
             extra_keywords: json!({}),
             properties: HashMap::new(),
             pattern_properties: HashMap::new(),
-            required_properties: HashSet::new(),
+            required_properties: None,
             include_empty_required: false,
         }
     }
@@ -74,11 +74,11 @@ impl SchemaStrategy for ObjectStrategy {
             });
         }
 
-        if self.required_properties.len() == 0 {
-            self.required_properties.extend(properties);
+        if self.required_properties.is_none() {
+            self.required_properties = Some(properties);
         } else {
             // take the intersection
-            self.required_properties.retain(|p| properties.contains(p));
+            self.required_properties.as_mut().unwrap().retain(|p| properties.contains(p));
         }
     }
 
@@ -108,14 +108,17 @@ impl SchemaStrategy for ObjectStrategy {
             if schema_object.contains_key("required") {
                 if let Value::Array(required_fields) = &schema_object["required"] {
                     if required_fields.len() == 0 {
-                        // ??: not sure why this is needed
+                        // if the input schema object has required fields being empty, that means 
+                        // including empty required fields in the schema is the desired behavior
+                        // and should be followed
                         self.include_empty_required = true;
                     }
-                    if self.required_properties.len() == 0 {
-                        self.required_properties.extend(required_fields.iter().map(|v| v.as_str().unwrap().to_string()));
+                    if self.required_properties.is_none() {
+                        let required_fields_set: HashSet<String> = required_fields.iter().map(|v| v.as_str().unwrap().to_string()).collect();
+                        self.required_properties = Some(required_fields_set);
                     } else {
                         // take the intersection
-                        self.required_properties.retain(|p| required_fields.contains(&Value::String(p.to_string())));
+                        self.required_properties.as_mut().unwrap().retain(|p| required_fields.contains(&Value::String(p.to_string())));
                     }
                 }
             }
@@ -133,10 +136,24 @@ impl SchemaStrategy for ObjectStrategy {
         if self.pattern_properties.len() > 0 {
             schema["patternProperties"] = self.properties_to_schema(&self.pattern_properties);
         }
-        if self.required_properties.len() > 0 || self.include_empty_required {
-            let mut required_props: Vec<String> = self.required_properties.iter().map(|p| p.to_string()).collect();
+        if self.required_properties.is_some() || self.include_empty_required {
+            let mut required_props: Vec<String>;
+            if let Some(required_properties) = &self.required_properties {
+                required_props = required_properties.iter().map(|p| p.to_string()).collect();
+            } else {
+                required_props = vec![];
+            }
             required_props.sort();
-            schema["required"] = required_props.into();
+
+            if required_props.len() > 0 || self.include_empty_required {
+                schema["required"] = required_props.into();
+            } else {
+                // this is done in case there's a conflict with the required properties
+                // from extra keywords
+                schema.as_object_mut().unwrap().remove("required");
+            }
+        } else {
+            schema.as_object_mut().unwrap().remove("required");
         }
         schema
     }
