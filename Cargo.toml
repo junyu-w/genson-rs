@@ -1,5 +1,6 @@
 [package]
 name = "genson-rs"
+authors = ["Junyu Wang <wjyu95@gmail.com>"]
 version = "0.1.0"
 edition = "2021"
 description = "Extremely fast JSON Schema inference engine built in Rust"
