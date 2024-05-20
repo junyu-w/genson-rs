@@ -9,13 +9,11 @@
 While not having full feature parity yet, `genson-rs` focuses on **speed** ⚡️. It offers MUCH better performance (**25x ~ 75x faster**) compared to the Python `GenSON` library, and is generally a lot faster than other open source schema inference tools as well. Its high performance makes it a viable choice for online schema inference for large JSON dataset at scale. Check out the [benchmark](#benchmark) section for performance benchmark comparisons.
 
 ## Install
+Installation via [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is the easiest. If you don't have it already, follow the link to set up Cargo (one simple command), then run:
 ```
 cargo install genson-rs
 ```
-or
-```
-brew install XXX
-```
+Installing via `brew` will be supported soon.
 
 ## Usage
 ```
