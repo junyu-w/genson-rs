@@ -1,6 +1,8 @@
 # genson-rs
 
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/junyu-w/genson-rs)
+[![crates.io](https://img.shields.io/crates/v/genson-rs.svg)](https://crates.io/crates/genson-rs)
+[![CI](https://github.com/junyu-w/genson-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/junyu-w/genson-rs/actions/workflows/rust.yml)
 
 *-- 🔥 Generate JSON Schema from Gigabytes of JSON data in seconds*
 
