@@ -85,5 +85,8 @@ fn main() {
         // NOTE: early exit here to avoid dropping of the `object` variable
         //  which takes about 15~35% of the total runtime (depending on the size of the object)
         process::exit(0);
+    } else {
+        println!("No JSON files provided. Use --help for more information.");
+        process::exit(1);
     }
 }
