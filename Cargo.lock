@@ -387,7 +387,7 @@ dependencies = [
 
 [[package]]
 name = "genson-rs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap 4.5.4",
  "codspeed-criterion-compat",
