@@ -19,7 +19,7 @@ Installing via `brew` will be supported soon.
 
 ## Usage
 ```
-genson-rs <OPTION> <FILE>
+genson-rs <OPTION> <FILE(S)>
 ```
 
 e.g. If you have a large JSON file full of request logs in JSON format
